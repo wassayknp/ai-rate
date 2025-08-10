@@ -66,6 +66,7 @@ export default function useNativeVoiceSearch(
   return {
     isListening,
     error,
+    isSupported: true, // Native is always supported if the hook is used
     startListening,
     stopListening,
   };
