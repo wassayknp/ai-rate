@@ -22,7 +22,7 @@ export default function useOCR(
       setError(null);
       setIsProcessing(true);
       
-      if (Platform.OS !== 'web') {
+      if ((Platform.OS as string) !== 'web') {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
       
@@ -107,7 +107,7 @@ export default function useOCR(
           console.error('Mobile OCR error:', mobileError);
           setError('Failed to process image on mobile');
           
-          if (Platform.OS !== 'web') {
+          if ((Platform.OS as string) !== 'web') {
             await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
           }
         }
@@ -116,7 +116,7 @@ export default function useOCR(
       console.error('OCR processing error:', err);
       setError('Failed to process image');
       
-      if (Platform.OS !== 'web') {
+      if ((Platform.OS as string) !== 'web') {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
     } finally {
