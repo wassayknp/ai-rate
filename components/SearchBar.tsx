@@ -218,7 +218,11 @@ export default function SearchBar({
         visible={showCamera}
         onClose={() => setShowCamera(false)}
       />
-      
+            {/* Camera Popup */}
+      <CameraPopup 
+        visible={showCamera}
+        onClose={() => setShowCamera(false)}
+      />
       {/* Help Popup */}
       <HelpPopup 
         visible={showHelp}
