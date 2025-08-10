@@ -47,7 +47,7 @@ type ProductsState = {
   setSelectedFlags: (flags: string[]) => void;
   resetAllFilters: () => void;
   refreshData: () => void;
-  showToast: (message: string, position?: 'top' | 'center' | 'bottom') => void;
+  showToast: (message: string, type?: 'success' | 'error' | 'info', position?: 'top' | 'center' | 'bottom') => void;
   hideToast: () => void;
   adminConfig: any;
   updateAdminConfig: (config: any) => void;
@@ -81,6 +81,7 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
 
   const showToast = useCallback((
     message: string,
+    type: 'success' | 'error' | 'info' = 'info',
     position: 'top' | 'center' | 'bottom' = 'bottom'
   ) => {
     let toastPosition: 'top' | 'bottom' = 'bottom';
@@ -89,7 +90,7 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
     if (position === 'center') toastPosition = 'top';
 
     Toast.show({
-      type: 'info',
+      type,
       text1: message,
       position: toastPosition,
       visibilityTime: 2000,
@@ -181,7 +182,7 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
   // Optimized fetch function
   const fetchProducts = useCallback(async (showRefreshToast = false) => {
     setIsLoading(true);
-    let apiUrl = 'http://192.168.88.30:12345';
+    let apiUrl = 'http://192.168.5.25:12345';
 
     try {
       const config = adminConfig || await loadAdminConfig();
@@ -228,9 +229,9 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
         if (showRefreshToast) {
           if (data.last_updated?.time) {
             const timeAgo = getTimeAgoString(data.last_updated.time);
-            showToast(`✅ Data refreshed (updated ${timeAgo})`, 'top');
+            showToast(`✅ Data refreshed (updated ${timeAgo})`, 'success', 'top');
           } else {
-            showToast(`✅ Data refreshed`, 'top');
+            showToast(`✅ Data refreshed`, 'success', 'top');
           }
         } else {
           const count = transformedProducts.length;
@@ -239,7 +240,7 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
             const timeAgo = getTimeAgoString(data.last_updated.time);
             message += ` (updated ${timeAgo})`;
           }
-          showToast(message, 'center');
+          showToast(message, 'info', 'center');
         }
       } else {
         throw new Error('Invalid data format from API - missing pricelist');
@@ -258,9 +259,9 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
           if (showRefreshToast) {
             if (lastUpdate) {
               const timeAgo = getTimeAgoString(lastUpdate);
-              showToast(`📱 Using cached data (updated ${timeAgo})`, 'top');
+              showToast(`📱 Using cached data (updated ${timeAgo})`, 'info', 'top');
             } else {
-              showToast(`📱 Using cached data`, 'top');
+              showToast(`📱 Using cached data`, 'info', 'top');
             }
           } else {
             let message = `📦 ${cachedProducts.length} stock items available (cached data)`;
@@ -268,7 +269,7 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
               const timeAgo = getTimeAgoString(lastUpdate);
               message += ` (updated ${timeAgo})`;
             }
-            showToast(message, 'center');
+            showToast(message, 'info', 'center');
           }
           return;
         }
@@ -279,10 +280,10 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
       // Final fallback to mock data
       setProducts(mockProducts);
       if (showRefreshToast) {
-        showToast('📱 Using offline data - API unavailable', 'top');
+        showToast('📱 Using offline data - API unavailable', 'error', 'top');
       } else {
         const count = mockProducts.length;
-        showToast(`📦 ${count} stock items available (offline mode)`, 'center');
+        showToast(`📦 ${count} stock items available (offline mode)`, 'info', 'center');
       }
     } finally {
       setIsLoading(false);
@@ -497,7 +498,7 @@ useEffect(() => {
       const negativeStockItems = products.filter(product => (product.quantityInStock || 0) < 0);
       if (negativeStockItems.length > 0) {
         const itemNames = negativeStockItems.map(item => item.name).join(', ');
-        showToast(`⚠️ Negative stock: ${itemNames}`, 'top');
+        showToast(`⚠️ Negative stock: ${itemNames}`, 'error', 'top');
       }
     }
   }, [products, showToast]);

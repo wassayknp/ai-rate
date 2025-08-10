@@ -34,7 +34,7 @@ export default function AdminConfig({ visible, onClose, onSave }: AdminConfigPro
   const colors = useThemeColors(isDarkMode);
   
   const [config, setConfig] = useState<AdminConfigData>({
-    serverUrl: '192.168.88.30:12345',
+    serverUrl: '192.168.5.25:12345',
     companyName: 'Supreme Handloom',
     companyLogo: '',  
     categoryIcons: {

@@ -9,12 +9,14 @@ import SearchBar from '@/components/SearchBar';
 import { useThemeColors } from '@/constants/colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useProducts } from '@/hooks/useProducts';
+import useNativeVoiceSearch from '@/hooks/useNativeVoiceSearch';
 import useVoiceSearch from '@/hooks/useVoiceSearch';
 import { Product } from '@/types/product';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Platform,
   StyleSheet,
   Text,
   View
@@ -61,6 +63,8 @@ export default function ProductsScreen() {
     setShowOnlyInStock,
     setSearchMode,
     setCurrentSort,
+    setSortField,
+    setDateFilter,
     setRatingFilter,
     setSelectedFlags,
     refreshData,
@@ -71,19 +75,17 @@ export default function ProductsScreen() {
   
   const handleVoiceCommand = (text: string) => {
     const lower = text.toLowerCase();
+    showToast(`🗣️ Heard: "${text}"`, 'info', 'top');
 
     if (lower.includes('refresh')) {
       refreshData();
-      showToast('🔄 Data refreshed via voice');
     } else if (lower.includes('toggle stock')) {
       const newVal = !showOnlyInStock;
       handleStockToggle(newVal);
-      showToast(`🎛️ Stock filter toggled: ${newVal ? 'In stock' : 'All'}`);
     } else if (lower.includes('filter by')) {
       const category = lower.split('filter by')[1]?.trim();
       if (category) {
         handleCategoryChange(category);
-        showToast(`🗂️ Filter applied: ${category}`);
       }
     } else if (lower.includes('sort by')) {
       const sortValue = lower.split('sort by')[1]?.trim();
@@ -100,26 +102,24 @@ export default function ProductsScreen() {
       const mappedSort = sortMap[sortValue];
       if (mappedSort) {
         handleSortChange(mappedSort.field, mappedSort.direction);
-        showToast(`📊 Sorted by ${mappedSort.field} ${mappedSort.direction}`);
       } else {
-        showToast(`❓ Unknown sort type: ${sortValue}`);
+        showToast(`❓ Unknown sort command: "${sortValue}"`, 'error', 'center');
       }
     } else {
       // default: treat as search
       setSearchQuery(text);
-      showToast(`🔍 Searching: ${text}`);
+      showToast(`🔍 Searching for: "${text}"`, 'info', 'center');
     }
   };
 
-  const { isListening, error, isSupported, startListening, stopListening } = useVoiceSearch(
-    (text: string) => {
-      console.log('🔊 Voice result:', text);
-      // Handle the transcribed text
-    },
-    (message: string) => {
-      console.log('📱 Toast:', message);
-      // Show toast notification
-    }
+  const voiceSearchHook = Platform.select({
+    web: useVoiceSearch,
+    default: useNativeVoiceSearch,
+  });
+
+  const { isListening, error, isSupported, startListening, stopListening } = voiceSearchHook(
+    handleVoiceCommand,
+    showToast
   );
 
   const handleProductPress = (product: Product) => {
@@ -146,7 +146,7 @@ export default function ProductsScreen() {
       ? products.filter(p => p.category === category).length
       : products.length;
     const categoryName = category || 'All';
-    showToast(`📊 ${categoryName}: ${count} items`, 'center');
+    showToast(`🗂️ Filtered by ${categoryName}: ${count} items`, 'success', 'center');
   };
   
   const handleStockToggle = (value: boolean) => {
@@ -154,26 +154,24 @@ export default function ProductsScreen() {
     const message = value 
       ? '🟢 Showing in-stock items only'
       : '🔴 Showing all stock items';
-    showToast(message, 'center');
+    showToast(message, value ? 'success' : 'error', 'center');
   };
   
   // Updated sort handler
   const handleSortChange = (field: SortField, direction: SortDirection) => {
-    setCurrentSortField(field);
-    setCurrentSortDirection(direction);
-    showToast(`📊 Sorted by ${field} ${direction}ending`, 'center');
+    setSortField(field, direction);
+    showToast(`📊 Sorted by ${field} ${direction === 'asc' ? 'ascending' : 'descending'}`, 'success', 'center');
   };
   
   // Updated date filter handler
   const handleDateFilter = (type: DateType, preset: DatePreset) => {
-    setSelectedDateType(type);
-    setSelectedDatePreset(preset);
-    showToast(`📅 ${type} date filter: ${preset}`, 'center');
+    setDateFilter(type, preset);
+    showToast(`📅 Date filter changed to ${type}: ${preset}`, 'success', 'center');
   };
   
   const handleFlagFilter = (flags: string[]) => {
     setSelectedFlags(flags);
-    showToast(`🏷️ Badge filters: ${flags.length} selected`, 'center');
+    showToast(`🏷️ ${flags.length} badge filters selected`, 'success', 'center');
   };
 
   // New reset filters handler
@@ -185,12 +183,12 @@ export default function ProductsScreen() {
     setSelectedDatePreset('all-time');
     setSelectedFlags([]);
     setShowOnlyInStock(false);
-    showToast('🔄 All filters reset', 'center');
+    showToast('🔄 All filters have been reset', 'info', 'center');
   };
   
   const handleAdminSave = (config: any) => {
     updateAdminConfig(config);
-    showToast('⚙️ Admin configuration saved', 'center');
+    showToast('⚙️ Admin configuration saved successfully', 'success', 'center');
   };
   
   const openFilterSheet = () => {
@@ -215,6 +213,7 @@ export default function ProductsScreen() {
         onOpenFilter={openFilterSheet}
         companyName={adminConfig?.companyName}
         companyLogo={adminConfig?.companyLogo}
+        onTestVoice={startListening}
       />
       
       {isLoading ? (

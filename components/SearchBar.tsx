@@ -32,6 +32,7 @@ type SearchBarProps = {
   onOpenFilter?: () => void;
   companyName?: string;
   companyLogo?: string;
+  onTestVoice?: () => void;
 };
 
 export default function SearchBar({
@@ -49,7 +50,8 @@ export default function SearchBar({
   onOpenHelp,
   onOpenFilter,
   companyName = 'SH Rate',
-  companyLogo
+  companyLogo,
+  onTestVoice
 }: SearchBarProps) {
   const { isDarkMode, themeMode, setThemeMode } = useTheme();
   const colors = useThemeColors(isDarkMode);
@@ -201,6 +203,15 @@ export default function SearchBar({
           )}
         </TouchableOpacity>
         
+        {onTestVoice && (
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: colors.primary, marginLeft: 0 }]}
+            onPress={onTestVoice}
+            testID="test-voice-button"
+          >
+            <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>T</Text>
+          </TouchableOpacity>
+        )}
         {/* Sort Button */}
         {onOpenFilter && (
           <TouchableOpacity 
