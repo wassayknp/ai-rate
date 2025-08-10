@@ -17,7 +17,7 @@ type VoiceSearchState = {
 
 export default function useVoiceSearch(
   onResult: (text: string) => void,
-  showToast?: (message: string, position?: 'top' | 'center' | 'bottom') => void
+  showToast?: (message: string, type?: 'success' | 'error' | 'info', position?: 'top' | 'center' | 'bottom') => void
 ): VoiceSearchState {
   const [isListening, setIsListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -148,7 +148,7 @@ export default function useVoiceSearch(
         const errorMsg = `Microphone not available on this ${Platform.OS === 'web' ? 'browser' : 'device'}`;
         setError(errorMsg);
         if (showToast) {
-          showToast(`❌ ${errorMsg}`, 'center');
+          showToast(`❌ ${errorMsg}`, 'error', 'center');
         }
         return false;
       }
@@ -162,7 +162,7 @@ export default function useVoiceSearch(
           if (permission.state === 'denied') {
             setError('Microphone access denied. Please enable in browser settings.');
             if (showToast) {
-              showToast('❌ Microphone denied. Check browser settings.', 'center');
+              showToast('❌ Microphone denied. Check browser settings.', 'error', 'center');
             }
             return false;
           }
@@ -219,7 +219,7 @@ export default function useVoiceSearch(
       setError(errorMessage);
       
       if (showToast) {
-        showToast(`❌ ${errorMessage}`, 'center');
+        showToast(`❌ ${errorMessage}`, 'error', 'center');
       }
       
       // Platform-specific permission instructions
@@ -257,7 +257,7 @@ export default function useVoiceSearch(
         Voice.onSpeechStart = () => {
           console.log('🎤 Native speech started');
           if (showToast) {
-            showToast('🎤 Listening... (Speak now)', 'center');
+            showToast('🎤 Listening... (Speak now)', 'info', 'center');
           }
           resolve();
         };
@@ -269,7 +269,7 @@ export default function useVoiceSearch(
             if (transcript) {
               onResult(transcript);
               if (showToast) {
-                showToast(`✅ Heard: "${transcript}"`, 'center');
+                showToast(`✅ Heard: "${transcript}"`, 'success', 'center');
               }
             }
           }
@@ -281,7 +281,7 @@ export default function useVoiceSearch(
           setError(`Native voice error: ${event.error?.message || 'Unknown error'}`);
           setIsListening(false);
           if (showToast) {
-            showToast('❌ Voice recognition failed', 'center');
+            showToast('❌ Voice recognition failed', 'error', 'center');
           }
           reject(new Error(event.error?.message || 'Native voice recognition failed'));
         };
@@ -340,7 +340,7 @@ export default function useVoiceSearch(
       recognition.onstart = () => {
         console.log('🎤 Web speech recognition started');
         if (showToast) {
-          showToast('🎤 Listening... (Speak now)', 'center');
+          showToast('🎤 Listening... (Speak now)', 'info', 'center');
         }
         resolve();
       };
@@ -353,7 +353,7 @@ export default function useVoiceSearch(
           if (transcript) {
             onResult(transcript);
             if (showToast) {
-              showToast(`✅ Heard: "${transcript}"`, 'center');
+              showToast(`✅ Heard: "${transcript}"`, 'success', 'center');
             }
           }
         }
@@ -387,7 +387,7 @@ export default function useVoiceSearch(
         setError(errorMessage);
         setIsListening(false);
         if (showToast) {
-          showToast(`❌ ${errorMessage}`, 'center');
+          showToast(`❌ ${errorMessage}`, 'error', 'center');
         }
         reject(new Error(errorMessage));
       };
@@ -421,7 +421,7 @@ export default function useVoiceSearch(
       
       if (!isSupported) {
         if (showToast) {
-          showToast('❌ Voice search not supported on this platform', 'center');
+          showToast('❌ Voice search not supported on this platform', 'error', 'center');
         }
         return;
       }
@@ -470,7 +470,7 @@ export default function useVoiceSearch(
       // Priority 3: Fallback to MediaRecorder + STT API
       console.log('🎯 Falling back to MediaRecorder + STT API');
       if (showToast && (nativeAttempted || webSpeechAttempted)) {
-        showToast('ℹ️ Using fallback voice recognition', 'center');
+        showToast('ℹ️ Using fallback voice recognition', 'info', 'center');
       }
       await startMediaRecording();
       
@@ -479,7 +479,7 @@ export default function useVoiceSearch(
       setError('Failed to start voice recognition');
       setIsListening(false);
       if (showToast) {
-        showToast('❌ Voice search failed to start', 'center');
+        showToast('❌ Voice search failed to start', 'error', 'center');
       }
     }
   }, [isSupported, startNativeVoiceRecognition, startWebSpeechRecognition]);
@@ -538,7 +538,7 @@ export default function useVoiceSearch(
         
         if (audioBlob.size === 0) {
           if (showToast) {
-            showToast('❌ No audio recorded', 'center');
+            showToast('❌ No audio recorded', 'error', 'center');
           }
           setIsListening(false);
           return;
@@ -556,7 +556,7 @@ export default function useVoiceSearch(
           const timeoutId = setTimeout(() => controller.abort(), timeout);
           
           if (showToast) {
-            showToast('🔄 Processing voice...', 'center');
+            showToast('🔄 Processing voice...', 'info', 'center');
           }
           
           const response = await fetch('https://toolkit.rork.com/stt/transcribe/', {
@@ -574,7 +574,7 @@ export default function useVoiceSearch(
               onResult(result.text.trim());
               
               if (showToast) {
-                showToast(`✅ Heard: "${result.text.trim()}"`, 'center');
+                showToast(`✅ Heard: "${result.text.trim()}"`, 'success', 'center');
               }
               
               if (Platform.OS !== 'web') {
@@ -584,7 +584,7 @@ export default function useVoiceSearch(
               }
             } else {
               if (showToast) {
-                showToast('🔇 No speech detected', 'center');
+                showToast('🔇 No speech detected', 'info', 'center');
               }
             }
           } else {
@@ -600,7 +600,7 @@ export default function useVoiceSearch(
           
           setError(errorMsg);
           if (showToast) {
-            showToast(`❌ ${errorMsg}`, 'center');
+            showToast(`❌ ${errorMsg}`, 'error', 'center');
           }
         }
         
@@ -615,7 +615,7 @@ export default function useVoiceSearch(
       
       mediaRecorder.onstart = () => {
         if (showToast) {
-          showToast('🎤 Recording... (STT fallback)', 'center');
+          showToast('🎤 Recording... (STT fallback)', 'info', 'center');
         }
       };
       
@@ -625,7 +625,7 @@ export default function useVoiceSearch(
         setIsListening(false);
         
         if (showToast) {
-          showToast('❌ Recording failed', 'center');
+          showToast('❌ Recording failed', 'error', 'center');
         }
       };
       
@@ -645,7 +645,7 @@ export default function useVoiceSearch(
       setIsListening(false);
       
       if (showToast) {
-        showToast('❌ Could not start recording', 'center');
+        showToast('❌ Could not start recording', 'error', 'center');
       }
     }
   }, [onResult, showToast, requestMicrophonePermission]);
@@ -707,7 +707,7 @@ export default function useVoiceSearch(
       }
 
       if (showToast) {
-        showToast('🔇 Voice search stopped', 'center');
+        showToast('🔇 Voice search stopped', 'info', 'center');
       }
     }
   }, [isListening, showToast]);

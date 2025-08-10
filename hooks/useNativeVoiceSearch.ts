@@ -6,13 +6,14 @@ import { Alert } from 'react-native';
 type VoiceSearchState = {
   isListening: boolean;
   error: string | null;
+  isSupported: boolean;
   startListening: () => void;
   stopListening: () => void;
 };
 
 export default function useNativeVoiceSearch(
   onResult: (text: string) => void,
-  showToast?: (message: string, position?: 'top' | 'center' | 'bottom') => void
+  showToast?: (message: string, type?: 'success' | 'error' | 'info', position?: 'top' | 'center' | 'bottom') => void
 ): VoiceSearchState {
   const [isListening, setIsListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,14 +21,14 @@ export default function useNativeVoiceSearch(
   useEffect(() => {
     Voice.onSpeechStart = () => {
       setIsListening(true);
-      showToast?.('🎤 Listening...', 'center');
+      showToast?.('🎤 Listening...', 'info', 'center');
     };
 
     Voice.onSpeechResults = (e) => {
       const transcript = e.value?.[0];
       if (transcript) {
         onResult(transcript);
-        showToast?.(`🔊 "${transcript}"`, 'center');
+        showToast?.(`🔊 "${transcript}"`, 'success', 'center');
       }
       stopListening();
     };
@@ -35,7 +36,7 @@ export default function useNativeVoiceSearch(
     Voice.onSpeechError = (e) => {
       const msg = e.error?.message || 'Voice recognition failed';
       setError(msg);
-      showToast?.(`❌ ${msg}`, 'center');
+      showToast?.(`❌ ${msg}`, 'error', 'center');
       stopListening();
     };
 
