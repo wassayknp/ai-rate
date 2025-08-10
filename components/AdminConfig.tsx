@@ -6,6 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  Dimensions,
   Modal,
   Platform,
   ScrollView,
@@ -167,7 +168,11 @@ export default function AdminConfig({ visible, onClose, onSave }: AdminConfigPro
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
+        <View style={[styles.bottomSheet, { backgroundColor: colors.card }]}>
+          <View style={styles.handle}>
+            <View style={[styles.handleBar, { backgroundColor: colors.text }]} />
+          </View>
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.text }]}>Admin Configuration</Text>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
@@ -307,20 +312,34 @@ export default function AdminConfig({ visible, onClose, onSave }: AdminConfigPro
   );
 }
 
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const BOTTOM_SHEET_MAX_HEIGHT = SCREEN_HEIGHT * 0.8;
+
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    justifyContent: 'flex-end',
   },
-  modalContent: {
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  bottomSheet: {
+    height: BOTTOM_SHEET_MAX_HEIGHT,
     width: '100%',
-    maxWidth: 500,
-    maxHeight: '90%',
-    borderRadius: 16,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     overflow: 'hidden',
+  },
+  handle: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  handleBar: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    opacity: 0.3,
   },
   header: {
     flexDirection: 'row',

@@ -1,5 +1,6 @@
 import Voice from '@react-native-voice/voice';
 import * as Haptics from 'expo-haptics';
+import * as Permissions from 'expo-permissions';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
@@ -47,6 +48,12 @@ export default function useNativeVoiceSearch(
 
   const startListening = useCallback(async () => {
     try {
+      const { status } = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'You need to grant microphone access to use voice search.');
+        return;
+      }
+
       await Voice.start('en-IN'); // or 'hi-IN' or 'ar-SA'
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } catch (e) {
