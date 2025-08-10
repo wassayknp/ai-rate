@@ -35,7 +35,7 @@ export default function AdminConfig({ visible, onClose, onSave }: AdminConfigPro
   const colors = useThemeColors(isDarkMode);
   
   const [config, setConfig] = useState<AdminConfigData>({
-    serverUrl: '192.168.5.25:12345',
+    serverUrl: '192.168.88.30:12345',
     companyName: 'Supreme Handloom',
     companyLogo: '',  
     categoryIcons: {
@@ -190,7 +190,7 @@ export default function AdminConfig({ visible, onClose, onSave }: AdminConfigPro
                   style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
                   value={config.serverUrl}
                   onChangeText={(text) => setConfig(prev => ({ ...prev, serverUrl: text }))}
-                  placeholder="192.168.5.25:12345"
+                  placeholder="192.168.88.30:12345"
                   placeholderTextColor={colors.text + '80'}
                   autoCapitalize="none"
                   autoCorrect={false}

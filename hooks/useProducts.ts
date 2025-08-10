@@ -182,7 +182,7 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
   // Optimized fetch function
   const fetchProducts = useCallback(async (showRefreshToast = false) => {
     setIsLoading(true);
-    let apiUrl = 'http://192.168.5.25:12345';
+    let apiUrl = 'http://192.168.88.30:12345';
 
     try {
       const config = adminConfig || await loadAdminConfig();
@@ -212,9 +212,9 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
       console.log('Fetched products from API:', data);
       
       // Handle different API response formats
-      let productsData = data;
-      if (data.data && Array.isArray(data.data)) {
-        productsData = data.data; // Handle {metadata, data, last_updated} format
+      let productsData = data.pricelist;
+      if (data.pricelist && Array.isArray(data.pricelist)) {
+        productsData = data.pricelist; // Handle {metadata, pricelist, last_updated} format
       }
       
       // Validate and transform data structure

@@ -5,7 +5,9 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { Product } from '@/types/product';
 import { FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
+import { hexToRgba } from '@/utils/utility';
+
 
 type ProductCardProps = {
   product: Product;
@@ -19,7 +21,8 @@ export default function ProductCard({ product, allProducts = [], onPress }: Prod
   const category = categories.find(c => c.name === product.category);
   const isOutOfStock = product.quantityInStock <= 0;
   const isLowStock = product.quantityInStock < 10 && product.quantityInStock > 0;
-  
+  const categoryColorHex = category?.color || colors.primary; // fallback to primary color
+const categoryColorRGBA = hexToRgba(categoryColorHex, 0.15);
   // Calculate badges based on API flags
   const badges = useMemo(() => {
     const badgeList: { type: string; icon: string; iconSet: string; color: string }[] = [];
@@ -52,7 +55,7 @@ export default function ProductCard({ product, allProducts = [], onPress }: Prod
       style={[
         styles.card,
         { 
-          backgroundColor: colors.card,
+          backgroundColor: categoryColorRGBA,
           shadowColor: colors.shadow
         },
         isOutOfStock && { 
@@ -67,11 +70,10 @@ export default function ProductCard({ product, allProducts = [], onPress }: Prod
       {/* Category Icon */}
       <View 
         style={[
-          styles.categoryIcon,
-          { backgroundColor: category?.color || colors.primary }
+          styles.categoryIcon
         ]}
       >
-        <Text style={styles.iconText}>{category?.icon || '📦'}</Text>
+    <Image source={category?.logo} style={{ width: 28, height: 28, marginLeft: 6, alignContent: 'center', resizeMode: 'contain' }} />
       </View>
       
       
@@ -129,7 +131,7 @@ export default function ProductCard({ product, allProducts = [], onPress }: Prod
             {product.quantityInStock} {product.unitOfMeasurement}
           </Text>
           <View style={styles.ratingContainer}>
-              <RatingIcon rating={product.rating} size={16} />
+              <RatingIcon rating={product.rating} size={14} />
               <Text style={[styles.ratingText, { color: colors.text }]}>
                 {product.rating.toFixed(1)}
               </Text>
@@ -153,14 +155,14 @@ export default function ProductCard({ product, allProducts = [], onPress }: Prod
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 30,
-    marginHorizontal: 2, // Very thin margins
-    marginBottom: 6,
+    borderRadius: 15,
+    marginHorizontal: 8, // Very thin margins
+    marginBottom: 3,
     paddingVertical: 5,
     paddingHorizontal: 5,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    minHeight: 55, // Slightly increased for rating
+    minHeight: 35, // Slightly increased for rating
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -171,13 +173,16 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
   },
   categoryIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    borderTopLeftRadius:16,
+    borderTopRightRadius: 16,
+
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 5,
-    marginTop: 7,
+    marginLeft: 2,
+    marginTop: 5,
     marginBottom: 5,
   },
   iconText: {
@@ -185,7 +190,7 @@ const styles = StyleSheet.create({
   },
   contentArea: {
     flex: 1,
-    marginLeft: 5,
+    marginLeft: 4,
     marginTop: 2,
     marginRight: 85, // Reduced margin for base rate
   },
@@ -198,45 +203,45 @@ const styles = StyleSheet.create({
   },
   productName: {
     fontSize: 18,
-    fontWeight: '400',
+    fontWeight: '500',
     flex: 7,
     marginLeft: 2,
     flexWrap: 'wrap',
     lineHeight: 20,
   },
   finalRate: {
-    fontSize: 18,
-    fontWeight: '400',
+    fontSize: 20,
+    fontWeight: '500',
     textAlign: 'right',
     flex: 3,
   },
   secondRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     height: 14,
   },
   stockText: {
     fontSize: 14,
-    fontWeight: '400',
+    fontWeight: '500',
     flex: 3,
     marginLeft: 2,
   },
   hsnText: {
     fontSize: 14,
-    fontWeight: '400',
+    fontWeight: '500',
     flex: 3,
     textAlign: 'right',
   },
   gstText: {
     fontSize: 14,
-    fontWeight: '400',
+    fontWeight: '500',
     flex: 2,
     textAlign: 'right',
   },
   baseRate: {
     fontSize: 28,
-    fontWeight: '400',
+    fontWeight: '600',
     textAlign: 'right',
     width: 75, // Reduced width
     position: 'absolute',
@@ -244,8 +249,8 @@ const styles = StyleSheet.create({
     top: 5,
   },
   badgeContainer: {
-    position: 'relative',
-    alignItems: 'center',
+    position: 'sticky',
+    alignItems: 'flex-end',
     flexDirection: 'row', // ✅ horizontal layout
     flexWrap: 'wrap',     // ✅ allow wrapping to next line if too many
     gap: 4,               // ✅ small spacing between badges (RN 0.71+)
@@ -267,7 +272,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ratingText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
     marginLeft: 4,
   },
