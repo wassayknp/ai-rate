@@ -4,7 +4,6 @@ import { fuzzySearchProducts } from '@/utils/fuzzyMatch';
 import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Toast from 'react-native-toast-message';
 
 type SearchMode = 'item' | 'rate' | 'hsn';
 
@@ -29,6 +28,7 @@ type ProductsState = {
   toastMessage: string;
   toastVisible: boolean;
   toastPosition: 'top' | 'center' | 'bottom';
+  toastType: 'success' | 'error' | 'info';
   currentSort: SortOption;
   currentSortField: SortField | null;
   currentSortDirection: SortDirection;
@@ -63,6 +63,7 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
   const [toastPosition, setToastPosition] = useState<'top' | 'center' | 'bottom'>('bottom');
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('info');
   
   // Legacy sort state (for backward compatibility)
   const [currentSort, setCurrentSort] = useState<SortOption>('category');
@@ -84,23 +85,15 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
     type: 'success' | 'error' | 'info' = 'info',
     position: 'top' | 'center' | 'bottom' = 'bottom'
   ) => {
-    let toastPosition: 'top' | 'bottom' = 'bottom';
-
-    if (position === 'top') toastPosition = 'top';
-    if (position === 'center') toastPosition = 'top';
-
-    Toast.show({
-      type,
-      text1: message,
-      position: toastPosition,
-      visibilityTime: 2000,
-      topOffset: position === 'center' ? 250 : 40,
-    });
+    setToastMessage(message);
+    setToastType(type);
+    setToastPosition(position);
+    setToastVisible(true);
   }, []);
 
-  const hideToast = () => {
+  const hideToast = useCallback(() => {
     setToastVisible(false);
-  };
+  }, []);
 
   // Utility function for time ago string
   const getTimeAgoString = (dateString: string): string => {
@@ -182,108 +175,80 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
   // Optimized fetch function
   const fetchProducts = useCallback(async (showRefreshToast = false) => {
     setIsLoading(true);
-    let apiUrl = 'http://192.168.5.25:12345';
 
-    try {
-      const config = adminConfig || await loadAdminConfig();
-      if (config && config.serverUrl) {
-        apiUrl = config.serverUrl.startsWith('http') ? config.serverUrl : `http://${config.serverUrl}`;
-      }
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // Reduced timeout
-      
-      const response = await fetch(`${apiUrl}/list`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('Fetched products from API:', data);
-      
-      // Handle different API response formats
-      let productsData = data;
-      if (data.data && Array.isArray(data.data)) {
-        productsData = data.data; // Handle {metadata, data, last_updated} format
-      }
-      
-      // Validate and transform data structure
-      if (Array.isArray(productsData) && productsData.length > 0) {
-        const transformedProducts = transformAPIData(productsData as APIProduct[]);
-        setProducts(transformedProducts);
-        
-        // Cache the data
-        await AsyncStorage.setItem('cachedProducts', JSON.stringify(transformedProducts));
-        await AsyncStorage.setItem('lastDataUpdate', data.last_updated?.time);
-        
-        if (showRefreshToast) {
-          if (data.last_updated?.time) {
-            const timeAgo = getTimeAgoString(data.last_updated.time);
-            showToast(`✅ Data refreshed (updated ${timeAgo})`, 'success', 'top');
-          } else {
-            showToast(`✅ Data refreshed`, 'success', 'top');
-          }
-        } else {
-          const count = transformedProducts.length;
-          let message = `📦 ${count} stock items available`;
-          if (data.last_updated?.time) {
-            const timeAgo = getTimeAgoString(data.last_updated.time);
-            message += ` (updated ${timeAgo})`;
-          }
-          showToast(message, 'info', 'center');
-        }
-      } else {
-        throw new Error('Invalid data format from API - missing pricelist');
-      }
-    } catch (error) {
-      console.log('API fetch failed, trying cached data:', error);
-      
+    const loadFromCache = async () => {
       try {
         const cachedData = await AsyncStorage.getItem('cachedProducts');
         const lastUpdate = await AsyncStorage.getItem('lastDataUpdate');
-        
         if (cachedData) {
           const cachedProducts = JSON.parse(cachedData);
           setProducts(cachedProducts);
-          
           if (showRefreshToast) {
-            if (lastUpdate) {
-              const timeAgo = getTimeAgoString(lastUpdate);
-              showToast(`📱 Using cached data (updated ${timeAgo})`, 'info', 'top');
-            } else {
-              showToast(`📱 Using cached data`, 'info', 'top');
-            }
-          } else {
-            let message = `📦 ${cachedProducts.length} stock items available (cached data)`;
-            if (lastUpdate) {
-              const timeAgo = getTimeAgoString(lastUpdate);
-              message += ` (updated ${timeAgo})`;
-            }
-            showToast(message, 'info', 'center');
+            const timeAgo = lastUpdate ? ` (updated ${getTimeAgoString(lastUpdate)})` : '';
+            showToast(`📱 Using cached data${timeAgo}`, 'info', 'top');
           }
-          return;
+          return true;
         }
       } catch (cacheError) {
-        console.log('Failed to load cached data:', cacheError);
+        console.error('Failed to load cached data:', cacheError);
       }
-      
-      // Final fallback to mock data
+      return false;
+    };
+
+    const loadFromMock = () => {
       setProducts(mockProducts);
       if (showRefreshToast) {
         showToast('📱 Using offline data - API unavailable', 'error', 'top');
       } else {
         const count = mockProducts.length;
         showToast(`📦 ${count} stock items available (offline mode)`, 'info', 'center');
+      }
+    };
+
+    try {
+      const config = adminConfig || await loadAdminConfig();
+      const apiUrl = (config && config.serverUrl)
+        ? (config.serverUrl.startsWith('http') ? config.serverUrl : `http://${config.serverUrl}`)
+        : 'http://192.168.88.30:12345';
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const response = await fetch(`${apiUrl}/list`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const productsData = data.pricelist && Array.isArray(data.pricelist) ? data.pricelist : data;
+
+      if (Array.isArray(productsData) && productsData.length > 0) {
+        const transformedProducts = transformAPIData(productsData as APIProduct[]);
+        setProducts(transformedProducts);
+        
+        await AsyncStorage.setItem('cachedProducts', JSON.stringify(transformedProducts));
+        if (data.last_updated?.time) {
+          await AsyncStorage.setItem('lastDataUpdate', data.last_updated.time);
+        }
+
+        if (showRefreshToast) {
+          const timeAgo = data.last_updated?.time ? ` (updated ${getTimeAgoString(data.last_updated.time)})` : '';
+          showToast(`✅ Data refreshed${timeAgo}`, 'success', 'top');
+        }
+      } else {
+        throw new Error('Invalid data format from API');
+      }
+    } catch (error) {
+      console.error('API fetch failed:', error);
+      const cacheLoaded = await loadFromCache();
+      if (!cacheLoaded) {
+        loadFromMock();
       }
     } finally {
       setIsLoading(false);
@@ -520,6 +485,7 @@ useEffect(() => {
     toastMessage,
     toastVisible,
     toastPosition,
+    toastType,
     currentSort,
     currentSortField,
     currentSortDirection,

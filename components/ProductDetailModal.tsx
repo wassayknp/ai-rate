@@ -9,9 +9,11 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { Product } from '@/types/product';
-import { useThemeColors } from '@/constants/colors';
+import colors, { useThemeColors } from '@/constants/colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import categories from '@/constants/categories';
+
+import { hexToRgba } from '@/utils/utility';
 
 type ProductDetailModalProps = {
   visible: boolean;
@@ -32,6 +34,8 @@ export default function ProductDetailModal({
   if (!product) return null;
   
   const category = categories.find(c => c.name === product.category);
+    const categoryColorHex = category?.color || colors.primary; // fallback to primary color
+  const categoryColorRGBA = hexToRgba(categoryColorHex, 0.95);
   const isOutOfStock = product.quantityInStock <= 0;
   const isLowStock = product.quantityInStock < 10 && product.quantityInStock > 0;
   
@@ -51,7 +55,7 @@ export default function ProductDetailModal({
       onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
+        <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
           <View style={styles.header}>
             <View 
               style={[
@@ -270,7 +274,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#ffffff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 20,

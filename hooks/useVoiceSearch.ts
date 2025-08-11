@@ -22,7 +22,6 @@ export default function useVoiceSearch(
   const [isListening, setIsListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSupported, setIsSupported] = useState(true);
-
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const recognitionRef = useRef<any>(null);
@@ -128,116 +127,6 @@ export default function useVoiceSearch(
       */
     };
   }, []);
-
-  const requestMicrophonePermission = useCallback(async (): Promise<boolean> => {
-    try {
-      console.log('🎤 Requesting microphone permission...');
-      
-      if (Platform.OS !== 'web') {
-        // For React Native, check native voice permissions first
-        if (nativeVoiceAvailable.current) {
-          console.log('📱 Requesting native voice permissions');
-          // Native voice recognition handles its own permissions
-          return true;
-        }
-        
-        console.log('📱 Native voice not available, requesting microphone for recording');
-      }
-      
-      if (!navigator?.mediaDevices?.getUserMedia) {
-        const errorMsg = `Microphone not available on this ${Platform.OS === 'web' ? 'browser' : 'device'}`;
-        setError(errorMsg);
-        if (showToast) {
-          showToast(`❌ ${errorMsg}`, 'error', 'center');
-        }
-        return false;
-      }
-
-      // Check current permission status (web only)
-      if (Platform.OS === 'web' && 'permissions' in navigator) {
-        try {
-          const permission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-          console.log('🔍 Current microphone permission:', permission.state);
-          
-          if (permission.state === 'denied') {
-            setError('Microphone access denied. Please enable in browser settings.');
-            if (showToast) {
-              showToast('❌ Microphone denied. Check browser settings.', 'error', 'center');
-            }
-            return false;
-          }
-        } catch (permError) {
-          console.log('⚠️ Could not check permission status:', permError);
-        }
-      }
-
-      // Request access with platform-optimized constraints
-      const constraints = {
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          ...(Platform.OS === 'web' ? {
-            sampleRate: 16000,
-            channelCount: 1
-          } : {
-            // Mobile-optimized settings
-            sampleRate: { ideal: 16000 },
-            channelCount: { ideal: 1 }
-          })
-        }
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      console.log('✅ Microphone permission granted');
-      streamRef.current = stream;
-      return true;
-
-    } catch (error: any) {
-      console.error('❌ Microphone permission error:', error);
-      
-      let errorMessage = 'Microphone access failed';
-      
-      if (error.name === 'NotAllowedError') {
-        errorMessage = Platform.OS === 'web' 
-          ? 'Microphone access denied. Please allow microphone access in browser settings.'
-          : 'Microphone access denied. Please allow microphone access in app settings.';
-      } else if (error.name === 'NotFoundError') {
-        errorMessage = 'No microphone found on this device.';
-      } else if (error.name === 'NotSupportedError') {
-        errorMessage = Platform.OS === 'web' 
-          ? 'Microphone not supported in this browser.'
-          : 'Microphone not supported on this device.';
-      } else if (error.name === 'NotReadableError') {
-        errorMessage = 'Microphone is already in use by another application.';
-      } else if (error.name === 'SecurityError') {
-        errorMessage = Platform.OS === 'web' 
-          ? 'Security error. Please use HTTPS.'
-          : 'Security error accessing microphone.';
-      }
-      
-      setError(errorMessage);
-      
-      if (showToast) {
-        showToast(`❌ ${errorMessage}`, 'error', 'center');
-      }
-      
-      // Platform-specific permission instructions
-      const instructions = Platform.OS === 'web' 
-        ? 'To enable:\n• Click the microphone icon in your browser\'s address bar\n• Or go to browser settings and allow microphone for this site'
-        : Platform.OS === 'ios'
-        ? 'To enable:\n• Go to Settings > Privacy & Security > Microphone\n• Enable microphone access for this app'
-        : 'To enable:\n• Go to Settings > Apps > [App Name] > Permissions\n• Enable microphone access';
-      
-      Alert.alert(
-        'Microphone Permission Required',
-        `${errorMessage}\n\n${instructions}`,
-        [{ text: 'OK' }]
-      );
-      
-      return false;
-    }
-  }, [showToast]);
 
   // Native Voice Recognition (React Native only)
   const startNativeVoiceRecognition = useCallback(async (): Promise<void> => {
@@ -366,7 +255,7 @@ export default function useVoiceSearch(
         
         switch (event.error) {
           case 'network':
-            errorMessage = 'Network error - check your internet connection';
+            errorMessage = 'Network error. Please check your internet connection or try again later.';
             break;
           case 'not-allowed':
             errorMessage = 'Microphone access denied';
@@ -467,13 +356,8 @@ export default function useVoiceSearch(
         }
       }
       
-      // Priority 3: Fallback to MediaRecorder + STT API
-      console.log('🎯 Falling back to MediaRecorder + STT API');
-      if (showToast && (nativeAttempted || webSpeechAttempted)) {
-        showToast('ℹ️ Using fallback voice recognition', 'info', 'center');
-      }
-      await startMediaRecording();
-      
+      // If Web Speech API fails, we don't fall back to STT as per user request.
+      // The error is already handled and shown to the user inside startWebSpeechRecognition.
     } catch (err) {
       console.error('❌ Voice recognition error:', err);
       setError('Failed to start voice recognition');
@@ -483,172 +367,6 @@ export default function useVoiceSearch(
       }
     }
   }, [isSupported, startNativeVoiceRecognition, startWebSpeechRecognition]);
-  
-  const startMediaRecording = useCallback(async () => {
-    try {
-      console.log('🎙️ Starting MediaRecorder fallback on', Platform.OS);
-      
-      // Request microphone permission for recording
-      const hasPermission = await requestMicrophonePermission();
-      if (!hasPermission) {
-        setIsListening(false);
-        return;
-      }
-
-      let stream = streamRef.current;
-      if (!stream) {
-        throw new Error('No audio stream available after permission grant');
-      }
-      
-      // Platform-specific MIME type selection
-      let mimeType = 'audio/webm;codecs=opus';
-      
-      if (Platform.OS === 'ios') {
-        const iosFormats = ['audio/mp4', 'audio/aac', 'audio/webm;codecs=opus', 'audio/webm'];
-        mimeType = iosFormats.find(format => MediaRecorder.isTypeSupported(format)) || 'audio/mp4';
-      } else if (Platform.OS === 'android') {
-        const androidFormats = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/3gpp'];
-        mimeType = androidFormats.find(format => MediaRecorder.isTypeSupported(format)) || 'audio/webm';
-      } else {
-        const webFormats = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/wav'];
-        mimeType = webFormats.find(format => MediaRecorder.isTypeSupported(format)) || 'audio/webm';
-      }
-      
-      console.log('📹 Using MIME type:', mimeType, 'on', Platform.OS);
-      
-      const mediaRecorder = new MediaRecorder(stream, { 
-        mimeType,
-        ...(Platform.OS !== 'web' ? {
-          audioBitsPerSecond: 64000
-        } : {})
-      });
-      mediaRecorderRef.current = mediaRecorder;
-      
-      const audioChunks: Blob[] = [];
-      
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunks.push(event.data);
-        }
-      };
-      
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: mimeType });
-        console.log('📁 Audio blob size:', audioBlob.size, 'bytes');
-        
-        if (audioBlob.size === 0) {
-          if (showToast) {
-            showToast('❌ No audio recorded', 'error', 'center');
-          }
-          setIsListening(false);
-          return;
-        }
-        
-        try {
-          const formData = new FormData();
-          const fileExtension = mimeType.includes('webm') ? 'webm' : 
-                               mimeType.includes('mp4') ? 'm4a' :
-                               mimeType.includes('3gpp') ? '3gp' : 'wav';
-          formData.append('audio', audioBlob, `recording.${fileExtension}`);
-          
-          const timeout = Platform.OS === 'web' ? 30000 : 45000;
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), timeout);
-          
-          if (showToast) {
-            showToast('🔄 Processing voice...', 'info', 'center');
-          }
-          
-          const response = await fetch('https://toolkit.rork.com/stt/transcribe/', {
-            method: 'POST',
-            body: formData,
-            signal: controller.signal
-          });
-          
-          clearTimeout(timeoutId);
-          
-          if (response.ok) {
-            const result = await response.json();
-            
-            if (result.text && result.text.trim()) {
-              onResult(result.text.trim());
-              
-              if (showToast) {
-                showToast(`✅ Heard: "${result.text.trim()}"`, 'success', 'center');
-              }
-              
-              if (Platform.OS !== 'web') {
-                try {
-                  await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                } catch (e) {}
-              }
-            } else {
-              if (showToast) {
-                showToast('🔇 No speech detected', 'info', 'center');
-              }
-            }
-          } else {
-            throw new Error(`STT API failed: ${response.status}`);
-          }
-        } catch (error: any) {
-          console.error('❌ STT processing error:', error);
-          
-          let errorMsg = 'Voice processing failed';
-          if (error.name === 'AbortError') {
-            errorMsg = 'Voice processing timed out';
-          }
-          
-          setError(errorMsg);
-          if (showToast) {
-            showToast(`❌ ${errorMsg}`, 'error', 'center');
-          }
-        }
-        
-        setIsListening(false);
-        
-        // Clean up
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach(track => track.stop());
-          streamRef.current = null;
-        }
-      };
-      
-      mediaRecorder.onstart = () => {
-        if (showToast) {
-          showToast('🎤 Recording... (STT fallback)', 'info', 'center');
-        }
-      };
-      
-      mediaRecorder.onerror = (event) => {
-        console.error('❌ MediaRecorder error:', event);
-        setError('Recording failed');
-        setIsListening(false);
-        
-        if (showToast) {
-          showToast('❌ Recording failed', 'error', 'center');
-        }
-      };
-      
-      const timeslice = Platform.OS === 'web' ? 500 : 1000;
-      mediaRecorder.start(timeslice);
-      
-      const maxDuration = Platform.OS === 'web' ? 10000 : 15000;
-      timeoutRef.current = setTimeout(() => {
-        if (mediaRecorder.state === 'recording') {
-          mediaRecorder.stop();
-        }
-      }, maxDuration);
-      
-    } catch (error) {
-      console.error('❌ Media recording error:', error);
-      setError('Recording setup failed');
-      setIsListening(false);
-      
-      if (showToast) {
-        showToast('❌ Could not start recording', 'error', 'center');
-      }
-    }
-  }, [onResult, showToast, requestMicrophonePermission]);
 
   const stopListening = useCallback(async () => {
     if (isListening) {
