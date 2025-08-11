@@ -226,7 +226,8 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
       }
 
       const data = await response.json();
-      const productsData = data.data && Array.isArray(data.data) ? data.data : data;
+      const productsData = data.pricelist && Array.isArray(data.pricelist) ? data.pricelist : data;
+
 
       if (Array.isArray(productsData) && productsData.length > 0) {
         const transformedProducts = transformAPIData(productsData as APIProduct[]);
@@ -485,6 +486,7 @@ useEffect(() => {
     toastMessage,
     toastVisible,
     toastPosition,
+    toastType,
     currentSort,
     currentSortField,
     currentSortDirection,

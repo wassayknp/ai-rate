@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
   },
   handle: {
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 4,
   },
   handleBar: {
     width: 40,
@@ -428,13 +428,13 @@ const styles = StyleSheet.create({
   },
   resetSection: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   resetButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 25,
     gap: 8,
   },
@@ -444,12 +444,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 12,
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 10,
   },
   sortGrid: {
     flexDirection: 'row',
@@ -520,7 +520,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dateTypeText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
   },
   datePresets: {
@@ -546,14 +546,14 @@ const styles = StyleSheet.create({
   categoryOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     paddingVertical: 8,
     borderRadius: 16,
     borderWidth: 1,
     gap: 4,
   },
   categoryOptionText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
   },
 });

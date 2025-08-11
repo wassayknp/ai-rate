@@ -48,6 +48,13 @@ export default function useNativeVoiceSearch(
 
   const startListening = useCallback(async () => {
     try {
+      if (!Voice) {
+        Alert.alert(
+          'Voice Module Not Linked',
+          'The native voice module is not available. This is expected in Expo Go. Please use a development build to test this feature.'
+        );
+        return;
+      }
       const isAvailable = await Voice.isAvailable();
       if (!isAvailable) {
         Alert.alert(

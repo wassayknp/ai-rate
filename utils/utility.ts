@@ -6,4 +6,4 @@ export function hexToRgba(hex: string, opacity: number = 0.1): string {
   const g = (bigint >> 8) & 255;
   const b = bigint & 255;
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-} 
+} ;

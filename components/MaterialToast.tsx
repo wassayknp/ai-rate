@@ -5,6 +5,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 
 type ToastPosition = 'top' | 'center' | 'bottom';
 
+
 type MaterialToastProps = {
   message: string;
   visible: boolean;

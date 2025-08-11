@@ -131,7 +131,7 @@ export default function ProductsScreen() {
     // Auto-close modal after 5 seconds
     setTimeout(() => {
       setModalVisible(false);
-    }, 5000);
+    }, 10000);
   };
   
   const renderItem = ({ item }: { item: Product }) => (
