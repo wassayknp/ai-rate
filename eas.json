@@ -6,34 +6,13 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal",
-      "android": {
-        "buildType": "apk"
-      },
-      "channel": "development",
-      "env": {
-        "APP_ENV": "development"
-      },
-      "command": "npm install"
+      "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal",
-      "android": {
-        "buildType": "apk"
-      },
-      "channel": "preview",
-      "env": {
-        "APP_ENV": "preview"
-      },
-      "command": "npm install"
+      "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true,
-            "channel": "production",
-      "env": {
-        "APP_ENV": "production"
-      },
-      "command": "npm install"
+      "autoIncrement": true
     }
   },
   "submit": {
