@@ -38,8 +38,6 @@ export default function ProductsScreen() {
   const [adminVisible, setAdminVisible] = useState(false);
   
   // New filter states
-  const [currentSortField, setCurrentSortField] = useState<SortField | null>(null);
-  const [currentSortDirection, setCurrentSortDirection] = useState<SortDirection>('asc');
   const [selectedDateType, setSelectedDateType] = useState<DateType>('purchase');
   const [selectedDatePreset, setSelectedDatePreset] = useState<DatePreset>('all-time');
   
@@ -54,7 +52,10 @@ export default function ProductsScreen() {
     toastMessage,
     toastVisible,
     toastPosition,
+    toastType,
     currentSort, // Keep this for backward compatibility if needed
+    currentSortField,
+    currentSortDirection,
     ratingFilter,
     selectedFlags,
     adminConfig,
@@ -67,6 +68,7 @@ export default function ProductsScreen() {
     setDateFilter,
     setRatingFilter,
     setSelectedFlags,
+    resetAllFilters,
     refreshData,
     showToast,
     hideToast,
@@ -129,7 +131,7 @@ export default function ProductsScreen() {
     // Auto-close modal after 5 seconds
     setTimeout(() => {
       setModalVisible(false);
-    }, 5000);
+    }, 10000);
   };
   
   const renderItem = ({ item }: { item: Product }) => (
@@ -176,13 +178,7 @@ export default function ProductsScreen() {
 
   // New reset filters handler
   const handleResetFilters = () => {
-    setCurrentSortField(null);
-    setCurrentSortDirection('asc');
-    setSelectedCategory(null);
-    setSelectedDateType('purchase');
-    setSelectedDatePreset('all-time');
-    setSelectedFlags([]);
-    setShowOnlyInStock(false);
+    resetAllFilters();
     showToast('🔄 All filters have been reset', 'info', 'center');
   };
   
@@ -216,7 +212,7 @@ export default function ProductsScreen() {
         onTestVoice={startListening}
       />
       
-      {isLoading ? (
+      {isLoading && products.length === 0 ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
@@ -238,13 +234,17 @@ export default function ProductsScreen() {
       )}
       
       {/* Bottom Footer */}
-      <BottomFooter />
+      <BottomFooter
+        onPressAdmin={() => setAdminVisible(true)}
+        onPressHelp={() => setHelpVisible(true)}
+      />
       
       {/* Material Toast */}
       <MaterialToast
         message={toastMessage}
         visible={toastVisible}
         position={toastPosition}
+        type={toastType}
         onHide={hideToast}
       />
       

@@ -1,6 +1,6 @@
 import Voice from '@react-native-voice/voice';
+import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
-import * as Permissions from 'expo-permissions';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
@@ -42,13 +42,29 @@ export default function useNativeVoiceSearch(
     };
 
     return () => {
-      Voice.destroy().then(Voice.removeAllListeners);
+      Voice.removeAllListeners();
     };
   }, []);
 
   const startListening = useCallback(async () => {
     try {
-      const { status } = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
+      if (!Voice) {
+        Alert.alert(
+          'Voice Module Not Linked',
+          'The native voice module is not available. This is expected in Expo Go. Please use a development build to test this feature.'
+        );
+        return;
+      }
+      const isAvailable = await Voice.isAvailable();
+      if (!isAvailable) {
+        Alert.alert(
+          'Voice Search Not Available',
+          'The voice recognition service is not available on this device. If you are using Expo Go, you need to create a development build to use this feature.'
+        );
+        return;
+      }
+
+      const { status } = await Audio.requestPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Permission Denied', 'You need to grant microphone access to use voice search.');
         return;
