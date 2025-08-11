@@ -55,7 +55,6 @@
     "react-native-screens": "~4.10.0",
     "react-native-svg": "^15.11.2",
     "react-native-svg-transformer": "^1.5.1",
-    "react-native-toast-message": "^2.3.3",
     "react-native-voice": "^0.3.0",
     "react-native-web": "^0.20.0",
     "zustand": "^5.0.2"

@@ -10,6 +10,7 @@ type MaterialToastProps = {
   visible: boolean;
   duration?: number;
   position?: ToastPosition;
+  type?: 'success' | 'error' | 'info';
   icon?: React.ReactNode;
   onHide?: () => void;
 };
@@ -19,6 +20,7 @@ export default function MaterialToast({
   visible,
   duration = 2000,
   position = 'bottom',
+  type = 'info',
   icon,
   onHide
 }: MaterialToastProps) {
@@ -29,14 +31,17 @@ export default function MaterialToast({
   
   const { height } = Dimensions.get('window');
   
-  // Determine toast color based on message content
+  // Determine toast color based on type
   const getToastColor = () => {
-    if (message.includes('✅') || message.includes('available')) return '#4CAF50'; // Green
-    if (message.includes('⚠️') || message.includes('Negative')) return '#FF9800'; // Orange
-    if (message.includes('📱') || message.includes('offline')) return '#2196F3'; // Blue
-    if (message.includes('🔊') || message.includes('Captured')) return '#9C27B0'; // Purple
-    if (message.includes('📦')) return '#607D8B'; // Blue Grey
-    return colors.primary; // Default
+    switch (type) {
+      case 'success':
+        return '#4CAF50'; // Green
+      case 'error':
+        return '#F44336'; // Red
+      case 'info':
+      default:
+        return '#2196F3'; // Blue
+    }
   };
 
   useEffect(() => {

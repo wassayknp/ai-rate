@@ -1,24 +1,27 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '@/constants/colors';
 import { useTheme } from '@/contexts/ThemeContext';
 
-export default function BottomFooter() {
+type BottomFooterProps = {
+  onPressAdmin: () => void;
+  onPressHelp: () => void;
+};
+
+export default function BottomFooter({ onPressAdmin, onPressHelp }: BottomFooterProps) {
   const { isDarkMode } = useTheme();
   const colors = useThemeColors(isDarkMode);
 
-  const openGitHub = () => {
-    Linking.openURL('https://github.com/wassayknp');
-  };
-
   return (
     <View style={[styles.container, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
-      <TouchableOpacity onPress={openGitHub} style={styles.content}>
-        <Text style={[styles.text, { color: colors.text }]}>
-          AI Rate List created in 🇮🇳 by{' '}
-          <Text style={[styles.link, { color: colors.primary }]}>wassayknp</Text>
-        </Text>
+      <TouchableOpacity onPress={onPressAdmin} style={styles.button}>
+        <Ionicons name="settings-outline" size={16} color={colors.text} />
+        <Text style={[styles.text, { color: colors.text }]}>Admin Settings</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={onPressHelp} style={styles.button}>
+        <Text style={[styles.text, { color: colors.text }]}>Need Help?</Text>
+        <Ionicons name="help-circle-outline" size={16} color={colors.text} />
       </TouchableOpacity>
     </View>
   );
@@ -26,20 +29,20 @@ export default function BottomFooter() {
 
 const styles = StyleSheet.create({
   container: {
-    borderTopWidth: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  content: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    borderTopWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   text: {
-    fontSize: 12,
-    textAlign: 'center',
-    opacity: 0.8,
-  },
-  link: {
-    textDecorationLine: 'underline',
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
