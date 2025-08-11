@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { View, Text, StyleSheet, TouchableOpacity,Image, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '@/constants/colors';
@@ -12,6 +13,7 @@ type BottomFooterProps = {
 export default function BottomFooter({ onPressAdmin, onPressHelp }: BottomFooterProps) {
   const { isDarkMode } = useTheme();
   const colors = useThemeColors(isDarkMode);
+
  const openGitHub = () => {
     Linking.openURL('https://github.com/wassayknp');
   };
@@ -19,6 +21,7 @@ export default function BottomFooter({ onPressAdmin, onPressHelp }: BottomFooter
     <View style={[styles.container, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
       <TouchableOpacity onPress={onPressAdmin} style={styles.button}>
         <Ionicons name="settings-outline" size={16} color={colors.text} />
+
         <Text style={[styles.text, { color: colors.text }]}>Admin</Text>
       </TouchableOpacity>
             <TouchableOpacity onPress={openGitHub} style={styles.content}>
@@ -44,6 +47,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     paddingVertical: 12,
     paddingHorizontal: 24,
+
   },
     companylogo: {
     width: 15,

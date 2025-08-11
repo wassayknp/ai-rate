@@ -55,12 +55,11 @@ export default function useNativeVoiceSearch(
         );
         return;
       }
-
       const isAvailable = await Voice.isAvailable();
       if (!isAvailable) {
         Alert.alert(
           'Voice Search Not Available',
-          'The voice recognition service is not available on this device or in your current environment.'
+          'The voice recognition service is not available on this device. If you are using Expo Go, you need to create a development build to use this feature.'
         );
         return;
       }

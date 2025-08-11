@@ -209,7 +209,7 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
       const config = adminConfig || await loadAdminConfig();
       const apiUrl = (config && config.serverUrl)
         ? (config.serverUrl.startsWith('http') ? config.serverUrl : `http://${config.serverUrl}`)
-        : 'http://192.168.88.30:12345';
+        : 'http://192.168.5.25:12345';
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -227,6 +227,7 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
 
       const data = await response.json();
       const productsData = data.pricelist && Array.isArray(data.pricelist) ? data.pricelist : data;
+
 
       if (Array.isArray(productsData) && productsData.length > 0) {
         const transformedProducts = transformAPIData(productsData as APIProduct[]);
