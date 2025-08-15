@@ -1,3 +1,4 @@
+// app/products/index.tsx
 import AdminConfig from '@/components/AdminConfig';
 import BottomDragFilter from '@/components/BottomDragFilter';
 import BottomFooter from '@/components/BottomFooter';
@@ -9,17 +10,15 @@ import SearchBar from '@/components/SearchBar';
 import { useThemeColors } from '@/constants/colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useProducts } from '@/hooks/useProducts';
-import useNativeVoiceSearch from '@/hooks/useNativeVoiceSearch';
-import useVoiceSearch from '@/hooks/useVoiceSearch';
+import useVoiceSearch from '@/hooks/useVoiceSearch'; // ✅ Only one hook now
 import { Product } from '@/types/product';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Platform,
   StyleSheet,
   Text,
-  View
+  View,
 } from 'react-native';
 
 // Updated types to match new BottomDragFilter
@@ -36,14 +35,14 @@ export default function ProductsScreen() {
   const [filterVisible, setFilterVisible] = useState(false);
   const [helpVisible, setHelpVisible] = useState(false);
   const [adminVisible, setAdminVisible] = useState(false);
-  
+
   // New filter states
   const [selectedDateType, setSelectedDateType] = useState<DateType>('purchase');
   const [selectedDatePreset, setSelectedDatePreset] = useState<DatePreset>('all-time');
-  
-  const { 
+
+  const {
     products,
-    filteredProducts, 
+    filteredProducts,
     selectedCategory,
     searchQuery,
     showOnlyInStock,
@@ -53,7 +52,6 @@ export default function ProductsScreen() {
     toastVisible,
     toastPosition,
     toastType,
-    currentSort, // Keep this for backward compatibility if needed
     currentSortField,
     currentSortDirection,
     ratingFilter,
@@ -72,9 +70,10 @@ export default function ProductsScreen() {
     refreshData,
     showToast,
     hideToast,
-    updateAdminConfig
+    updateAdminConfig,
   } = useProducts();
-  
+
+  // ✅ Voice command handler
   const handleVoiceCommand = (text: string) => {
     const lower = text.toLowerCase();
     showToast(`🗣️ Heard: "${text}"`, 'info', 'top');
@@ -108,18 +107,14 @@ export default function ProductsScreen() {
         showToast(`❓ Unknown sort command: "${sortValue}"`, 'error', 'center');
       }
     } else {
-      // default: treat as search
+      // Default: treat as search
       setSearchQuery(text);
       showToast(`🔍 Searching for: "${text}"`, 'info', 'center');
     }
   };
 
-  const voiceSearchHook = Platform.select({
-    web: useVoiceSearch,
-    default: useNativeVoiceSearch,
-  });
-
-  const { isListening, error, isSupported, startListening, stopListening } = voiceSearchHook(
+  // ✅ Use only the new unified hook
+  const { isListening, error, isSupported, startListening, stopListening } = useVoiceSearch(
     handleVoiceCommand,
     showToast
   );
@@ -127,73 +122,71 @@ export default function ProductsScreen() {
   const handleProductPress = (product: Product) => {
     setSelectedProduct(product);
     setModalVisible(true);
-    
+
     // Auto-close modal after 5 seconds
     setTimeout(() => {
       setModalVisible(false);
     }, 10000);
   };
-  
+
   const renderItem = ({ item }: { item: Product }) => (
-    <ProductCard 
+    <ProductCard
       product={item}
       allProducts={products}
       onPress={() => handleProductPress(item)}
     />
   );
-  
+
   const handleCategoryChange = (category: string | null) => {
     setSelectedCategory(category);
-    const count = category 
-      ? products.filter(p => p.category === category).length
+    const count = category
+      ? products.filter((p) => p.category === category).length
       : products.length;
     const categoryName = category || 'All';
-    showToast(`🗂️ Filtered by ${categoryName}: ${count} items`, 'success', 'center');
+    showToast(`🗂️ Filtered by ${categoryName}: ${count} items`, 'success', 'top');
   };
-  
+
   const handleStockToggle = (value: boolean) => {
     setShowOnlyInStock(value);
-    const message = value 
+    const message = value
       ? '🟢 Showing in-stock items only'
       : '🔴 Showing all stock items';
     showToast(message, value ? 'success' : 'error', 'center');
   };
-  
-  // Updated sort handler
+
   const handleSortChange = (field: SortField, direction: SortDirection) => {
     setSortField(field, direction);
-    showToast(`📊 Sorted by ${field} ${direction === 'asc' ? 'ascending' : 'descending'}`, 'success', 'center');
-  };
-  
-  // Updated date filter handler
-  const handleDateFilter = (type: DateType, preset: DatePreset) => {
-    setDateFilter(type, preset);
-    showToast(`📅 Date filter changed to ${type}: ${preset}`, 'success', 'center');
-  };
-  
-  const handleFlagFilter = (flags: string[]) => {
-    setSelectedFlags(flags);
-    showToast(`🏷️ ${flags.length} badge filters selected`, 'success', 'center');
+    showToast(`📊 Sorted by ${field} ${direction === 'asc' ? 'ascending' : 'descending'}`, 'success', 'top');
   };
 
-  // New reset filters handler
+  const handleDateFilter = (type: DateType, preset: DatePreset) => {
+    setDateFilter(type, preset);
+    showToast(`📅 Date filter changed to ${type}: ${preset}`, 'success', 'top');
+  };
+
+  const handleFlagFilter = (flags: string[]) => {
+    setSelectedFlags(flags);
+    showToast(`🏷️ ${flags.length} badge filters selected`, 'success', 'top');
+  };
+
   const handleResetFilters = () => {
     resetAllFilters();
-    showToast('🔄 All filters have been reset', 'info', 'center');
+    showToast('🔄 All filters have been reset', 'info', 'top');
   };
-  
+
   const handleAdminSave = (config: any) => {
     updateAdminConfig(config);
-    showToast('⚙️ Admin configuration saved successfully', 'success', 'center');
+    showToast('⚙️ Admin configuration saved successfully', 'success', 'top');
   };
-  
+
   const openFilterSheet = () => {
     setFilterVisible(true);
   };
-  
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]} testID="products-screen">
-      <SearchBar 
+      {/* SearchBar with Voice Support */}
+      <SearchBar
         value={searchQuery}
         onChangeText={setSearchQuery}
         onClear={() => setSearchQuery('')}
@@ -211,7 +204,8 @@ export default function ProductsScreen() {
         companyLogo={adminConfig?.companyLogo}
         onTestVoice={startListening}
       />
-      
+
+      {/* Loading State */}
       {isLoading && products.length === 0 ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -232,14 +226,14 @@ export default function ProductsScreen() {
           testID="products-list"
         />
       )}
-      
-      {/* Bottom Footer */}
+
+      {/* Footer */}
       <BottomFooter
         onPressAdmin={() => setAdminVisible(true)}
         onPressHelp={() => setHelpVisible(true)}
       />
-      
-      {/* Material Toast */}
+
+      {/* Toast */}
       <MaterialToast
         message={toastMessage}
         visible={toastVisible}
@@ -247,16 +241,16 @@ export default function ProductsScreen() {
         type={toastType}
         onHide={hideToast}
       />
-      
+
       {/* Product Detail Modal */}
-      <ProductDetailModal 
+      <ProductDetailModal
         visible={modalVisible}
         product={selectedProduct}
         onClose={() => setModalVisible(false)}
         allProducts={products}
       />
-      
-      {/* Bottom Drag Filter - Updated */}
+
+      {/* Bottom Drag Filter */}
       <BottomDragFilter
         visible={filterVisible}
         onClose={() => setFilterVisible(false)}
@@ -271,8 +265,8 @@ export default function ProductsScreen() {
         selectedDateType={selectedDateType}
         selectedDatePreset={selectedDatePreset}
       />
-      
-      {/* Help Popup */}
+
+      {/* Help & Admin */}
       <HelpPopup
         visible={helpVisible}
         onClose={() => setHelpVisible(false)}
@@ -281,8 +275,7 @@ export default function ProductsScreen() {
           setAdminVisible(true);
         }}
       />
-      
-      {/* Admin Config */}
+
       <AdminConfig
         visible={adminVisible}
         onClose={() => setAdminVisible(false)}
@@ -321,20 +314,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     opacity: 0.7,
     textAlign: 'center',
-  },
-  webFilterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    margin: 10,
-    gap: 6,
-  },
-  webFilterText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
   },
 });

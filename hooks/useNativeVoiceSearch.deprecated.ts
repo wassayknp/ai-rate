@@ -2,7 +2,6 @@ import Voice from '@react-native-voice/voice';
 import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert } from 'react-native';
 
 type VoiceSearchState = {
   isListening: boolean;
@@ -49,24 +48,18 @@ export default function useNativeVoiceSearch(
   const startListening = useCallback(async () => {
     try {
       if (!Voice) {
-        Alert.alert(
-          'Voice Module Not Linked',
-          'The native voice module is not available. This is expected in Expo Go. Please use a development build to test this feature.'
-        );
+        showToast?.('❌ The native voice module is not available. This is expected in Expo Go. Please use a development build to test this feature.', 'error', 'center');
         return;
       }
       const isAvailable = await Voice.isAvailable();
       if (!isAvailable) {
-        Alert.alert(
-          'Voice Search Not Available',
-          'The voice recognition service is not available on this device. If you are using Expo Go, you need to create a development build to use this feature.'
-        );
+        showToast?.('❌🎙️ The voice recognition service is not available on this device.', 'error', 'center');
         return;
       }
 
       const { status } = await Audio.requestPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'You need to grant microphone access to use voice search.');
+        showToast?.('🎤🚫 Microphone access is required to use voice search.', 'error', 'center');
         return;
       }
 
@@ -74,7 +67,7 @@ export default function useNativeVoiceSearch(
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } catch (e) {
       console.error('Start error:', e);
-      Alert.alert('Mic Error', 'Failed to start voice recognition.');
+      showToast?.('🎤⚠️ Failed to start voice recognition.', 'error', 'center');
     }
   }, []);
 

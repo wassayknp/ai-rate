@@ -201,7 +201,7 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
         showToast('📱 Using offline data - API unavailable', 'error', 'top');
       } else {
         const count = mockProducts.length;
-        showToast(`📦 ${count} stock items available (offline mode)`, 'info', 'center');
+        showToast(`📦 ${count} stock items available (offline mode)`, 'info', 'top');
       }
     };
 

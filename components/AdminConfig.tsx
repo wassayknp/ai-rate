@@ -1,11 +1,12 @@
 import { useThemeColors } from '@/constants/colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
+import { useProducts } from '@/hooks/useProducts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
+import { Product } from '@/types/product';
 import {
-  Alert,
   Dimensions,
   Modal,
   Platform,
@@ -29,11 +30,10 @@ type AdminConfigProps = {
   onClose: () => void;
   onSave: (config: AdminConfigData) => void;
 };
-
 export default function AdminConfig({ visible, onClose, onSave }: AdminConfigProps) {
   const { isDarkMode } = useTheme();
   const colors = useThemeColors(isDarkMode);
-  
+   const { showToast } = useProducts();
   const [config, setConfig] = useState<AdminConfigData>({
     serverUrl: '192.168.88.30:12345',
     companyName: 'Supreme Handloom',
@@ -70,12 +70,12 @@ export default function AdminConfig({ visible, onClose, onSave }: AdminConfigPro
 
   const handleSave = async () => {
     if (!config.serverUrl.trim()) {
-      Alert.alert('Error', 'Server URL is required');
+      showToast('❓ Server URL is required', 'error', 'top');
       return;
     }
     
     if (!config.companyName.trim()) {
-      Alert.alert('Error', 'Company name is required');
+      showToast('❓ Company name is required', 'error', 'top');
       return;
     }
 
@@ -97,24 +97,24 @@ export default function AdminConfig({ visible, onClose, onSave }: AdminConfigPro
         });
         
         if (response.ok) {
-          Alert.alert('Success', 'Configuration saved and API connection verified!');
+          showToast(`✅ Configuration saved and API connection verified! `, 'success', 'top');
         } else {
-          Alert.alert('Warning', 'Configuration saved but API connection failed. Please check server URL.');
+          showToast(`⚠️ Configuration saved but API connection failed. Please check server URL.`, 'error', 'top');
         }
       } catch (apiError) {
-        Alert.alert('Warning', 'Configuration saved but could not connect to API. Please verify server URL.');
+        showToast(`⚠️ Configuration saved but could not connect to API. Please verify server URL.`, 'error', 'top');
       }
       
       onSave(config);
       onClose();
     } catch (error) {
-      Alert.alert('Error', 'Failed to save configuration');
+      showToast('❌ Failed to save configuration', 'error', 'top');
     }
   };
 
   const pickImage = async () => {
     if (Platform.OS === 'web') {
-      Alert.alert('Info', 'Image upload not supported on web');
+      showToast('🔻Image upload not supported on web', 'info', 'top');
       return;
     }
 
