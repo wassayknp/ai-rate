@@ -9,7 +9,6 @@ export const lightColors = {
   warning: '#f39c12',
   success: '#27ae60',
   inactive: '#95a5a6',
-  
   shadow: 'rgba(0, 0, 0, 0.1)',
   // Additional colors for the app
   stockName: '#2c3e50',
@@ -55,6 +54,6 @@ export const useThemeColors = (isDarkMode?: boolean) => {
   return lightColors;
 };
 
-const colors = useThemeColors();
+const colors = lightColors;
 
 export default colors;

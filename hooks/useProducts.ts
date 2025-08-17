@@ -11,7 +11,7 @@ type SearchMode = 'item' | 'rate' | 'hsn';
 type SortField = 'category' | 'name' | 'rating' | 'stock' | 'finalprice' | 'hsn';
 type SortDirection = 'asc' | 'desc';
 type DateType = 'purchase' | 'sale';
-type DatePreset = 'last-month' | 'last-quarter' | 'last-year' | 'all-time';
+type DatePreset = 'last-month' | 'last-quarter' | 'last-year' | 'all-time' | 'custom';
 
 // Legacy type for backward compatibility
 type SortOption = 'category' | 'name-asc' | 'name-desc' | 'rating' | 'hsn' | 'stock';
@@ -34,6 +34,8 @@ type ProductsState = {
   currentSortDirection: SortDirection;
   selectedDateType: DateType;
   selectedDatePreset: DatePreset;
+  startDate: string | null;
+  endDate: string | null;
   ratingFilter: [number, number];
   selectedFlags: string[];
   setSelectedCategory: (category: string | null) => void;
@@ -42,7 +44,7 @@ type ProductsState = {
   setSearchMode: (mode: SearchMode) => void;
   setCurrentSort: (sort: SortOption) => void;
   setSortField: (field: SortField | null, direction: SortDirection) => void;
-  setDateFilter: (type: DateType, preset: DatePreset) => void;
+  setDateFilter: (type: DateType, preset: DatePreset, dates?: { startDate: string, endDate: string }) => void;
   setRatingFilter: (min: number, max: number) => void;
   setSelectedFlags: (flags: string[]) => void;
   resetAllFilters: () => void;
@@ -75,6 +77,8 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
   // Date filter states
   const [selectedDateType, setSelectedDateType] = useState<DateType>('purchase');
   const [selectedDatePreset, setSelectedDatePreset] = useState<DatePreset>('all-time');
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
   
   const [ratingFilter, setRatingFilterState] = useState<[number, number]>([0, 5]);
   const [selectedFlags, setSelectedFlags] = useState<string[]>([]);
@@ -226,8 +230,7 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
       }
 
       const data = await response.json();
-      const productsData = data.pricelist && Array.isArray(data.pricelist) ? data.pricelist : data;
-
+      const productsData = data.data && Array.isArray(data.data) ? data.data : data;
 
       if (Array.isArray(productsData) && productsData.length > 0) {
         const transformedProducts = transformAPIData(productsData as APIProduct[]);
@@ -263,9 +266,16 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
   }, []);
 
   // Date filter handler
-  const setDateFilter = useCallback((type: DateType, preset: DatePreset) => {
+  const setDateFilter = useCallback((type: DateType, preset: DatePreset, dates?: { startDate: string, endDate: string }) => {
     setSelectedDateType(type);
     setSelectedDatePreset(preset);
+    if (preset === 'custom' && dates) {
+      setStartDate(dates.startDate);
+      setEndDate(dates.endDate);
+    } else {
+      setStartDate(null);
+      setEndDate(null);
+    }
   }, []);
 
   // Rating filter handler
@@ -280,6 +290,8 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
     setCurrentSortDirection('asc');
     setSelectedDateType('purchase');
     setSelectedDatePreset('all-time');
+    setStartDate(null);
+    setEndDate(null);
     setSelectedFlags([]);
     setRatingFilterState([0, 5]);
     setSearchQuery('');
@@ -287,12 +299,28 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
   }, []);
 
   // Date filtering helper
-// Date filtering helper
 const filterByDate = useCallback((
   products: Product[],
   dateType: DateType,
-  preset: DatePreset
+  preset: DatePreset,
+  startDate: string | null,
+  endDate: string | null
 ) => {
+  const dateField: keyof Product = dateType === 'purchase' ? 'purchaseDate' : 'saleDate';
+
+  if (preset === 'custom' && startDate && endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return products;
+    return products.filter(product => {
+      const productDate = product[dateField];
+      if (!productDate) return false;
+      const date = new Date(productDate as string);
+      if (isNaN(date.getTime())) return false;
+      return date >= start && date <= end;
+    });
+  }
+
   if (preset === 'all-time') return products;
 
   const now = new Date();
@@ -310,18 +338,11 @@ const filterByDate = useCallback((
       break;
   }
 
-
-  const dateField: keyof Product = dateType === 'purchase' ? 'purchaseDate' : 'saleDate';
-
   return products.filter(product => {
-    // This assumes date strings in ISO format e.g. '2024-03-10'
     const productDate = product[dateField];
     if (!productDate) return false;
-
-    // Safely parse date string (or number), skip if invalid
     const date = new Date(productDate as string);
     if (isNaN(date.getTime())) return false;
-
     return date >= cutoffDate;
   });
 }, []);
@@ -394,7 +415,7 @@ const filterByDate = useCallback((
     }
     
     // Apply date filter
-    result = filterByDate(result, selectedDateType, selectedDatePreset);
+    result = filterByDate(result, selectedDateType, selectedDatePreset, startDate, endDate);
     
     // Apply search query based on search mode
     if (searchQuery.trim()) {
@@ -434,6 +455,8 @@ const filterByDate = useCallback((
     currentSortDirection,
     selectedDateType,
     selectedDatePreset,
+    startDate,
+    endDate,
     ratingFilter,
     selectedFlags,
     filterByDate,
@@ -486,7 +509,6 @@ useEffect(() => {
     toastMessage,
     toastVisible,
     toastPosition,
-    toastType,
     currentSort,
     currentSortField,
     currentSortDirection,

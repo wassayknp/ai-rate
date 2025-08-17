@@ -30,6 +30,7 @@ type BottomDragFilterProps = {
   onFlagFilter: (flags: string[]) => void;
   onCategoryFilter?: (category: string | null) => void;
   onResetFilters: () => void;
+  onOpenCalendar: () => void;
   currentSortField?: SortField | null;
   currentSortDirection?: SortDirection;
   selectedCategory?: string | null;
@@ -45,6 +46,7 @@ export default function BottomDragFilter({
   onFlagFilter,
   onCategoryFilter,
   onResetFilters,
+  onOpenCalendar,
   currentSortField,
   currentSortDirection = 'asc',
   selectedCategory,
@@ -318,7 +320,12 @@ export default function BottomDragFilter({
             
             {/* Date Range */}
             <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Date Range</Text>
+              <View style={styles.dateHeader}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Date Range</Text>
+                <TouchableOpacity style={styles.calendarButton} onPress={onOpenCalendar}>
+                  <Ionicons name="calendar-outline" size={20} color={colors.primary} />
+                </TouchableOpacity>
+              </View>
               
               {/* Date Type Toggle */}
               <View style={styles.dateTypeContainer}>
@@ -382,6 +389,11 @@ export default function BottomDragFilter({
                   </TouchableOpacity>
                 ))}
               </View>
+
+              {/* TODO: Implement a proper date range slider, e.g., using @miblanchard/react-native-slider */}
+              <View style={styles.sliderPlaceholder}>
+                <Text style={{ color: colors.text }}>Date Range Slider Placeholder</Text>
+              </View>
             </View>
           </ScrollView>
         </View>
@@ -414,7 +426,7 @@ const styles = StyleSheet.create({
   },
   handle: {
     alignItems: 'center',
-    paddingVertical: 4,
+    paddingVertical: 12,
   },
   handleBar: {
     width: 40,
@@ -428,13 +440,13 @@ const styles = StyleSheet.create({
   },
   resetSection: {
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 20,
   },
   resetButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     borderRadius: 25,
     gap: 8,
   },
@@ -444,12 +456,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   section: {
-    marginBottom: 12,
+    marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 10,
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  dateHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  calendarButton: {
+    padding: 8,
+  },
+  sliderPlaceholder: {
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    marginTop: 16,
   },
   sortGrid: {
     flexDirection: 'row',
@@ -520,7 +549,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dateTypeText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
   datePresets: {
@@ -546,14 +575,14 @@ const styles = StyleSheet.create({
   categoryOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
     borderWidth: 1,
     gap: 4,
   },
   categoryOptionText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
   },
 });

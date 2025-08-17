@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "AI Rate List",
+    "name": "ai-list",
     "slug": "ai-list",
-    "version": "1.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "@/images/icon.png",
+    "icon": "./assets/images/icon.png",
     "scheme": "ailist",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,7 +14,7 @@
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         },
-        "NSMicrophoneUsageDescription": "This app uses microphone for voice search functionality.",
+         "NSMicrophoneUsageDescription": "This app uses microphone for voice search functionality.",
         "NSSpeechRecognitionUsageDescription": "This app uses speech recognition for voice search."
       }
     },
@@ -22,11 +22,10 @@
       "usesCleartextTraffic": true,
       "permissions": [
         "android.permission.RECORD_AUDIO",
-        "android.permission.INTERNET",
-        "android.permission.MODIFY_AUDIO_SETTINGS"
+        "android.permission.INTERNET"
       ],
       "adaptiveIcon": {
-        "foregroundImage": "@/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -35,11 +34,11 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "@/images/favicon.png"
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "expo-router",
-      [
+            [
         "expo-av",
         {
           "microphonePermission": "Allow $(PRODUCT_NAME) to access microphone for voice search."
@@ -48,7 +47,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "@/images/splash-icon.png",
+          "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -60,12 +59,6 @@
     },
     "updates": {
       "enabled": false
-    },
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "4182b417-c20a-41e5-8acd-5dcce654d606"
-      }
     }
   }
 }

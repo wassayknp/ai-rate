@@ -191,7 +191,7 @@ export default function HelpPopup({ visible, onClose, onOpenAdmin }: HelpPopupPr
                 </Text>
               </Text>
               <Text style={[styles.copyright, { color: colors.text }]}>
-                © 2025 AI Rate List
+                © 2025 SH Rate AI
               </Text>
             </View>
           </ScrollView>

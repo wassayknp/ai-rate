@@ -1,9 +1,10 @@
 import { useThemeColors } from '@/constants/colors';
 import { useTheme } from '@/contexts/ThemeContext';
+import { Product } from '@/types/product';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Dimensions,
@@ -28,25 +29,25 @@ type AdminConfigProps = {
   visible: boolean;
   onClose: () => void;
   onSave: (config: AdminConfigData) => void;
+  showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+  products: Product[];
 };
 
-export default function AdminConfig({ visible, onClose, onSave }: AdminConfigProps) {
+export default function AdminConfig({ visible, onClose, onSave, showToast, products }: AdminConfigProps) {
   const { isDarkMode } = useTheme();
   const colors = useThemeColors(isDarkMode);
   
   const [config, setConfig] = useState<AdminConfigData>({
-    serverUrl: '192.168.88.30:12345',
+    serverUrl: '192.168.5.25:12345',
     companyName: 'Supreme Handloom',
     companyLogo: '',  
-    categoryIcons: {
-      'Gamcha': '🧺',
-      'Lungi': '👘',
-      'Stole': '🧣',
-      'Towel': '🏖️',
-      'Shawl': '🧥',
-      'Than': '🎭'
-    }
+    categoryIcons: {}
   });
+
+  const dynamicCategories = useMemo(() => {
+    const categories = new Set(products.map(p => p.category));
+    return Array.from(categories);
+  }, [products]);
   
   // Load saved config on mount
   useEffect(() => {
@@ -70,45 +71,39 @@ export default function AdminConfig({ visible, onClose, onSave }: AdminConfigPro
 
   const handleSave = async () => {
     if (!config.serverUrl.trim()) {
-      Alert.alert('Error', 'Server URL is required');
+      showToast('❌ Server URL is required', 'error');
       return;
     }
     
     if (!config.companyName.trim()) {
-      Alert.alert('Error', 'Company name is required');
+      showToast('❌ Company name is required', 'error');
       return;
     }
 
     try {
-      // Save to AsyncStorage
       await AsyncStorage.setItem('adminConfig', JSON.stringify(config));
       
-      // Test API connection
       const testUrl = config.serverUrl.startsWith('http') ? config.serverUrl : `http://${config.serverUrl}`;
       
-      try {
-        const response = await fetch(`${testUrl}/list`, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          signal: AbortSignal.timeout(3000)
-        });
-        
-        if (response.ok) {
-          Alert.alert('Success', 'Configuration saved and API connection verified!');
-        } else {
-          Alert.alert('Warning', 'Configuration saved but API connection failed. Please check server URL.');
-        }
-      } catch (apiError) {
-        Alert.alert('Warning', 'Configuration saved but could not connect to API. Please verify server URL.');
-      }
+      const response = await fetch(`${testUrl}/list`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(3000)
+      });
       
-      onSave(config);
-      onClose();
+      if (response.ok) {
+        showToast('✅ Configuration saved and API connection verified!', 'success');
+        onSave(config);
+        onClose();
+      } else {
+        showToast('⚠️ Configuration saved, but API connection failed. Please check the server URL.', 'error');
+        onSave(config); // Save anyway, but show error
+        onClose();
+      }
     } catch (error) {
-      Alert.alert('Error', 'Failed to save configuration');
+      showToast('⚠️ Configuration saved, but could not connect to API. Please verify the server URL.', 'error');
+      onSave(config); // Save anyway, but show error
+      onClose();
     }
   };
 
@@ -190,7 +185,7 @@ export default function AdminConfig({ visible, onClose, onSave }: AdminConfigPro
                   style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
                   value={config.serverUrl}
                   onChangeText={(text) => setConfig(prev => ({ ...prev, serverUrl: text }))}
-                  placeholder="192.168.88.30:12345"
+                  placeholder="192.168.5.25:12345"
                   placeholderTextColor={colors.text + '80'}
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -238,61 +233,23 @@ export default function AdminConfig({ visible, onClose, onSave }: AdminConfigPro
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: colors.primary }]}>Category Icons</Text>
               
-              {/* Existing Categories */}
+              {/* Dynamic Categories */}
               <View style={styles.categoryList}>
-                {Object.entries(config.categoryIcons).map(([category, icon]) => (
+                {dynamicCategories.map((category) => (
                   <View key={category} style={[styles.categoryItem, { backgroundColor: colors.background }]}>
-                    <Text style={styles.categoryIcon}>{icon}</Text>
+                    <TextInput
+                      style={styles.iconInput}
+                      value={config.categoryIcons[category] || ''}
+                      onChangeText={(text) => {
+                        const newIcons = { ...config.categoryIcons, [category]: text };
+                        setConfig(prev => ({ ...prev, categoryIcons: newIcons }));
+                      }}
+                      placeholder="?"
+                      maxLength={2}
+                    />
                     <Text style={[styles.categoryName, { color: colors.text }]}>{category}</Text>
-                    <TouchableOpacity
-                      style={styles.removeButton}
-                      onPress={() => removeCategory(category)}
-                    >
-                      <Ionicons name="trash-outline" size={16} color="#FF6B6B" />
-                    </TouchableOpacity>
                   </View>
                 ))}
-              </View>
-
-              {/* Add New Category */}
-              <View style={styles.addCategoryContainer}>
-                <Text style={[styles.label, { color: colors.text }]}>Add New Category</Text>
-                <View style={styles.addCategoryRow}>
-                  <TextInput
-                    style={[styles.categoryInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-                    value={newCategory}
-                    onChangeText={setNewCategory}
-                    placeholder="Category name"
-                    placeholderTextColor={colors.text + '80'}
-                  />
-                  <TextInput
-                    style={[styles.iconInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-                    value={newIcon}
-                    onChangeText={setNewIcon}
-                    placeholder="📦"
-                    placeholderTextColor={colors.text + '80'}
-                  />
-                  <TouchableOpacity
-                    style={[styles.addButton, { backgroundColor: colors.primary }]}
-                    onPress={addCategory}
-                  >
-                    <Ionicons name="add" size={20} color="#fff" />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Common Icons */}
-                <Text style={[styles.label, { color: colors.text }]}>Common Icons</Text>
-                <View style={styles.iconGrid}>
-                  {commonIcons.map((icon) => (
-                    <TouchableOpacity
-                      key={icon}
-                      style={[styles.iconOption, { backgroundColor: colors.background }]}
-                      onPress={() => setNewIcon(icon)}
-                    >
-                      <Text style={styles.iconOptionText}>{icon}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
               </View>
             </View>
           </ScrollView>

@@ -2,7 +2,7 @@ import CameraPopup from '@/components/CameraPopup';
 import HelpPopup from '@/components/HelpPopup';
 import { useThemeColors } from '@/constants/colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Feather, Ionicons, MaterialIcons, MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
+import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -60,7 +60,7 @@ export default function SearchBar({
 
   const getSearchModeIcon = () => {
     switch (searchMode) {
-      case 'item': return <FontAwesome name="info" size={20} color="#fff" />;
+      case 'item': return <Ionicons name="information-circle" size={20} color="#fff" />;
       case 'rate': return <MaterialIcons name="currency-rupee" size={20} color="#fff" />;
       case 'hsn': return <Feather name="hash" size={20} color="#fff" />;
     }
@@ -148,11 +148,11 @@ export default function SearchBar({
           
           {/* Help Button */}
           <TouchableOpacity 
-            style={[styles.headerButton, { backgroundColor: colors.warning }]} 
+            style={[styles.headerButton, { backgroundColor: colors.inactive }]}
             onPress={onOpenHelp || (() => setShowHelp(true))}
             testID="help-button"
           >
-            <MaterialCommunityIcons name="help" size={20} color="#fff" />
+            <Ionicons name="help-circle" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
@@ -165,11 +165,11 @@ export default function SearchBar({
           onPress={handleCameraPress}
           testID="camera-button-left"
         >
-          <Ionicons name="camera" size={25} color="#fff" />
+          <Ionicons name="camera" size={20} color="#fff" />
         </TouchableOpacity>
         
         <View style={[styles.searchContainer, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Ionicons name="search" size={25} color={colors.text} style={styles.searchIcon} />
+          <Ionicons name="search" size={20} color={colors.text} style={styles.searchIcon} />
           
           <TextInput
             style={[styles.input, { color: colors.text }]}
@@ -199,18 +199,27 @@ export default function SearchBar({
           {isListening ? (
             <ActivityIndicator color="#fff" size="small" />
           ) : (
-            <Ionicons name="mic" size={25} color="#fff" />
+            <Ionicons name="mic" size={20} color="#fff" />
           )}
         </TouchableOpacity>
         
+        {onTestVoice && (
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: colors.primary, marginLeft: 0 }]}
+            onPress={onTestVoice}
+            testID="test-voice-button"
+          >
+            <Text style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}>T</Text>
+          </TouchableOpacity>
+        )}
         {/* Sort Button */}
         {onOpenFilter && (
           <TouchableOpacity 
-            style={[styles.actionButton, { backgroundColor: colors.primary }]} 
+            style={[styles.actionButton, { backgroundColor: colors.secondary }]}
             onPress={onOpenFilter}
             testID="sort-button"
           >
-            <MaterialIcons name="filter-list" size={25} color="#fff" />
+            <Ionicons name="funnel-outline" size={20} color="#fff" />
           </TouchableOpacity>
         )}
       </View>
@@ -220,6 +229,7 @@ export default function SearchBar({
         visible={showCamera}
         onClose={() => setShowCamera(false)}
       />
+
       {/* Help Popup */}
       <HelpPopup 
         visible={showHelp}
@@ -232,7 +242,7 @@ export default function SearchBar({
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -267,23 +277,21 @@ const styles = StyleSheet.create({
   },
   container: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingHorizontal: 2,
-    paddingVertical: 6,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   searchContainer: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 20,
-    paddingHorizontal: 6,
-    height: 40,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    height: 48,
     borderWidth: 1,
   },
   searchIcon: {
-    marginRight: 4,
-    height: 20,
-    width: 20,
+    marginRight: 8,
   },
   input: {
     flex: 1,
@@ -291,14 +299,48 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   actionButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
   },
-
+  cameraContainer: {
+    flex: 1,
+  },
+  camera: {
+    flex: 1,
+  },
+  cameraOverlay: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 50,
+  },
+  cameraCloseButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: 10,
+  },
+  cameraFlipButton: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    marginTop: 50,
+  },
+  cameraCaptureButton: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 35,
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    marginBottom: 50,
+  },
   cameraButtonText: {
     color: '#fff',
     fontSize: 16,

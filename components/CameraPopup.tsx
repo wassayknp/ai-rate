@@ -45,13 +45,13 @@ const [autoCloseTimer, setAutoCloseTimer] = useState<number | null>(null);
   const { isProcessing, processImage } = useOCR(products, (foundProducts) => {
     setMatchedProducts(foundProducts);
     if (foundProducts.length > 0) {
-      showToast(`📷 Found ${foundProducts.length} matching product${foundProducts.length > 1 ? 's' : ''}`,'success', 'center');
+      showToast(`📷 Found ${foundProducts.length} matching product${foundProducts.length > 1 ? 's' : ''}`, 'center');
       // Auto-close camera after finding products
       setTimeout(() => {
         onClose();
       }, 3000);
     } else {
-      showToast('📷 No matching products found', 'error', 'center');
+      showToast('📷 No matching products found', 'center');
     }
   });
   // Auto-close timer effect
@@ -59,10 +59,10 @@ const [autoCloseTimer, setAutoCloseTimer] = useState<number | null>(null);
     if (visible && !capturedImage) {
       // Auto-close after 10 seconds if no capture
       const timer = setTimeout(() => {
-        showToast('📷 Camera closed automatically', 'info', 'center');
+        showToast('📷 Camera closed automatically', 'center');
         onClose();
       }, 10000);
-      setAutoCloseTimer(10000);
+      setAutoCloseTimer(timer);
       
       return () => {
         if (timer) clearTimeout(timer);
@@ -107,18 +107,18 @@ const [autoCloseTimer, setAutoCloseTimer] = useState<number | null>(null);
         
         if (photo && photo.uri) {
           setCapturedImage(photo.uri);
-          showToast('📷 Processing image...', 'info','center');
+          showToast('📷 Processing image...', 'center');
           await processImage(photo.uri);
         }
       } else {
         // For web or fallback, use mock processing
-        showToast('📷 Processing image...', 'info', 'center');
+        showToast('📷 Processing image...', 'center');
         setCapturedImage('mock-image');
         await processImage('mock-image');
       }
     } catch (error) {
       console.error('Error taking picture:', error);
-      showToast('📷 Failed to capture image', 'error', 'center');
+      showToast('📷 Failed to capture image', 'center');
     }
   };
   
