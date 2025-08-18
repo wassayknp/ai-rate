@@ -219,6 +219,7 @@ export default function useVoiceSearch(
 
       const recognition = new SpeechRecognition();
       recognitionRef.current = recognition;
+      let resultReceived = false;
       
       recognition.continuous = false;
       recognition.interimResults = false;
@@ -234,6 +235,7 @@ export default function useVoiceSearch(
       };
       
       recognition.onresult = (event: any) => {
+        resultReceived = true;
         if (event.results && event.results.length > 0) {
           const transcript = event.results[0][0].transcript.trim();
           console.log('🔊 Web speech recognized:', transcript);
@@ -249,7 +251,7 @@ export default function useVoiceSearch(
       };
       
       recognition.onerror = (event: any) => {
-        console.error('❌ Web speech recognition error:', event.error);
+        console.error('❌ Web speech recognition error:', event);
         let errorMessage = 'Voice recognition failed';
         
         switch (event.error) {
@@ -282,6 +284,15 @@ export default function useVoiceSearch(
       
       recognition.onend = () => {
         console.log('🔚 Web speech recognition ended');
+        if (!resultReceived) {
+          console.log('No result received before end event.');
+        }
+        setIsListening(false);
+      };
+
+      recognition.onospeech = () => {
+        console.log('🔇 No speech detected');
+        showToast?.('🔇 No speech detected, please try again.', 'info', 'center');
         setIsListening(false);
       };
       
