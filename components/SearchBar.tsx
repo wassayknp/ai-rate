@@ -20,6 +20,7 @@ type SearchBarProps = {
   value: string;
   onChangeText: (text: string) => void;
   onClear: () => void;
+  showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   isListening: boolean;
   onStartVoiceSearch: () => void;
   onStopVoiceSearch: () => void;
@@ -39,6 +40,7 @@ export default function SearchBar({
   value,
   onChangeText,
   onClear,
+  showToast,
   isListening,
   onStartVoiceSearch,
   onStopVoiceSearch,
@@ -78,7 +80,14 @@ export default function SearchBar({
     const modes: SearchMode[] = ['item', 'rate', 'hsn'];
     const currentIndex = modes.indexOf(searchMode);
     const nextIndex = (currentIndex + 1) % modes.length;
-    onSearchModeChange(modes[nextIndex]);
+    const newMode = modes[nextIndex];
+    onSearchModeChange(newMode);
+    showToast(`🔍 Search mode changed to ${newMode}`, 'info');
+  };
+
+  const handleClear = () => {
+    onClear();
+    showToast('🧹 Search cleared', 'info');
   };
 
   const handleCameraPress = () => {
@@ -181,7 +190,7 @@ export default function SearchBar({
           />
           
           {value ? (
-            <TouchableOpacity onPress={onClear} testID="clear-search">
+            <TouchableOpacity onPress={handleClear} testID="clear-search">
               <Ionicons name="close" size={20} color={colors.text} />
             </TouchableOpacity>
           ) : null}

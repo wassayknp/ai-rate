@@ -251,8 +251,8 @@ export default function useVoiceSearch(
       };
       
       recognition.onerror = (event: any) => {
-        console.error('❌ Web speech recognition error:', event);
-        let errorMessage = 'Voice recognition failed';
+        console.error('❌ Web speech recognition error:', JSON.stringify(event.error, null, 2));
+        let errorMessage = `Voice recognition failed: ${event.error}`;
         
         switch (event.error) {
           case 'network':

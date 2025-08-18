@@ -10,10 +10,10 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 type ProductCardProps = {
   product: Product;
   allProducts?: Product[];
-  onPress?: () => void;
+  onLongPress?: () => void;
 };
 
-export default function ProductCard({ product, allProducts = [], onPress }: ProductCardProps) {
+export default function ProductCard({ product, allProducts = [], onLongPress }: ProductCardProps) {
   const { isDarkMode } = useTheme();
   const colors = useThemeColors(isDarkMode);
   const category = categories.find(c => c.name === product.category);
@@ -36,17 +36,6 @@ export default function ProductCard({ product, allProducts = [], onPress }: Prod
     return badgeList;
   }, [product]);
   
-  // Auto-close modal after 5 seconds
-  const handlePress = () => {
-    if (onPress) {
-      onPress();
-      // Auto-close after 5 seconds
-      setTimeout(() => {
-        // This will be handled by the parent component
-      }, 5000);
-    }
-  };
-  
   return (
     <TouchableOpacity 
       style={[
@@ -61,7 +50,8 @@ export default function ProductCard({ product, allProducts = [], onPress }: Prod
         }
       ]}
       testID={`product-card-${product.id}`}
-      onPress={handlePress}
+      onLongPress={onLongPress}
+      delayLongPress={2000}
       activeOpacity={0.7}
     >
       {/* Category Icon */}

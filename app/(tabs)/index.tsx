@@ -140,7 +140,7 @@ export default function ProductsScreen() {
     <ProductCard 
       product={item}
       allProducts={products}
-      onPress={() => handleProductPress(item)}
+      onLongPress={() => handleProductPress(item)}
     />
   );
   
@@ -217,6 +217,7 @@ export default function ProductsScreen() {
         companyName={adminConfig?.companyName}
         companyLogo={adminConfig?.companyLogo}
         onTestVoice={startListening}
+        showToast={showToast}
       />
       
       {isLoading && products.length === 0 ? (
