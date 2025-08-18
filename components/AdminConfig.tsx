@@ -1,12 +1,11 @@
 import { useThemeColors } from '@/constants/colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
-import { useProducts } from '@/hooks/useProducts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
-import { Product } from '@/types/product';
 import {
+  Alert,
   Dimensions,
   Modal,
   Platform,
@@ -30,12 +29,13 @@ type AdminConfigProps = {
   onClose: () => void;
   onSave: (config: AdminConfigData) => void;
 };
+
 export default function AdminConfig({ visible, onClose, onSave }: AdminConfigProps) {
   const { isDarkMode } = useTheme();
   const colors = useThemeColors(isDarkMode);
-   const { showToast } = useProducts();
+  
   const [config, setConfig] = useState<AdminConfigData>({
-    serverUrl: '192.168.88.30:12345',
+    serverUrl: '192.168.5.25:12345',
     companyName: 'Supreme Handloom',
     companyLogo: '',  
     categoryIcons: {
@@ -70,12 +70,12 @@ export default function AdminConfig({ visible, onClose, onSave }: AdminConfigPro
 
   const handleSave = async () => {
     if (!config.serverUrl.trim()) {
-      showToast('❓ Server URL is required', 'error', 'top');
+      Alert.alert('Error', 'Server URL is required');
       return;
     }
     
     if (!config.companyName.trim()) {
-      showToast('❓ Company name is required', 'error', 'top');
+      Alert.alert('Error', 'Company name is required');
       return;
     }
 
@@ -97,24 +97,24 @@ export default function AdminConfig({ visible, onClose, onSave }: AdminConfigPro
         });
         
         if (response.ok) {
-          showToast(`✅ Configuration saved and API connection verified! `, 'success', 'top');
+          Alert.alert('Success', 'Configuration saved and API connection verified!');
         } else {
-          showToast(`⚠️ Configuration saved but API connection failed. Please check server URL.`, 'error', 'top');
+          Alert.alert('Warning', 'Configuration saved but API connection failed. Please check server URL.');
         }
       } catch (apiError) {
-        showToast(`⚠️ Configuration saved but could not connect to API. Please verify server URL.`, 'error', 'top');
+        Alert.alert('Warning', 'Configuration saved but could not connect to API. Please verify server URL.');
       }
       
       onSave(config);
       onClose();
     } catch (error) {
-      showToast('❌ Failed to save configuration', 'error', 'top');
+      Alert.alert('Error', 'Failed to save configuration');
     }
   };
 
   const pickImage = async () => {
     if (Platform.OS === 'web') {
-      showToast('🔻Image upload not supported on web', 'info', 'top');
+      Alert.alert('Info', 'Image upload not supported on web');
       return;
     }
 
@@ -190,7 +190,7 @@ export default function AdminConfig({ visible, onClose, onSave }: AdminConfigPro
                   style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
                   value={config.serverUrl}
                   onChangeText={(text) => setConfig(prev => ({ ...prev, serverUrl: text }))}
-                  placeholder="192.168.88.30:12345"
+                  placeholder="192.168.5.25:12345"
                   placeholderTextColor={colors.text + '80'}
                   autoCapitalize="none"
                   autoCorrect={false}

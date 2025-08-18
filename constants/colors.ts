@@ -34,7 +34,7 @@ export const darkColors = {
   warning: '#f39c12',
   success: '#27ae60',
   inactive: '#95a5a6',
-  shadow: 'rgba(0, 0, 0, 0.3)',
+  boxShadow: 'rgba(0, 0, 0, 0.3)',
   // Additional colors for the app
   stockName: '#ecf0f1',
   pinkRate: '#e91e63',

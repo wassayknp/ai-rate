@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "AI Rate List",
+    "name": "ai-list",
     "slug": "ai-list",
-    "version": "1.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "ailist",
@@ -14,7 +14,7 @@
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         },
-        "NSMicrophoneUsageDescription": "This app uses microphone for voice search functionality.",
+         "NSMicrophoneUsageDescription": "This app uses microphone for voice search functionality.",
         "NSSpeechRecognitionUsageDescription": "This app uses speech recognition for voice search."
       }
     },
@@ -22,15 +22,14 @@
       "usesCleartextTraffic": true,
       "permissions": [
         "android.permission.RECORD_AUDIO",
-        "android.permission.INTERNET",
-        "android.permission.MODIFY_AUDIO_SETTINGS"
+        "android.permission.INTERNET"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.wassayknp.ailist"
+      "package": "com.anonymous.ailist"
     },
     "web": {
       "bundler": "metro",
@@ -38,9 +37,8 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "./plugins/withFixedGradleBuild",
       "expo-router",
-      [
+            [
         "expo-av",
         {
           "microphonePermission": "Allow $(PRODUCT_NAME) to access microphone for voice search."
@@ -54,20 +52,13 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ],
-      "@react-native-voice/voice"
+      ]
     ],
     "experiments": {
       "typedRoutes": true
     },
     "updates": {
       "enabled": false
-    },
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "4182b417-c20a-41e5-8acd-5dcce654d606"
-      }
     }
   }
 }

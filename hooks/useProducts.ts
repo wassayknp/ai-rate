@@ -201,15 +201,15 @@ export const [ProductsProvider, useProducts] = createContextHook(() => {
         showToast('📱 Using offline data - API unavailable', 'error', 'top');
       } else {
         const count = mockProducts.length;
-        showToast(`📦 ${count} stock items available (offline mode)`, 'info', 'top');
+        showToast(`📦 ${count} stock items available (offline mode)`, 'info', 'center');
       }
     };
-
+const DEFAULT_API_URL = 'http://192.168.5.25:12345';
     try {
       const config = adminConfig || await loadAdminConfig();
-      const apiUrl = (config && config.serverUrl)
-        ? (config.serverUrl.startsWith('http') ? config.serverUrl : `http://${config.serverUrl}`)
-        : 'http://192.168.5.25:12345';
+        const apiUrl = (config && config.serverUrl)
+          ? (config.serverUrl.startsWith('http') ? config.serverUrl : `http://${config.serverUrl}`)
+          : DEFAULT_API_URL;
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);

@@ -56,7 +56,7 @@ const categoryColorRGBA = hexToRgba(categoryColorHex, 0.15);
         styles.card,
         { 
           backgroundColor: categoryColorRGBA,
-          shadowColor: colors.shadow
+          shadowColor: colors.boxShadow
         },
         isOutOfStock && { 
           ...styles.outOfStockCard,
